@@ -6,11 +6,9 @@ from numpy.random import default_rng
 
 def lin_reg(x,y):
     n = len(y)
-    X = np.c_[np.ones((n,1)), x]
+    X = np.c_[np.ones(n), x]
     beta = np.linalg.inv(X.T @ X) @ X.T @ y
-    xnew = np.array([[0],[2]])
-    xbnew = np.c_[np.ones((2,1)), xnew]
-    ypredict = xbnew.dot(beta)
+    ypredict = X @ beta
     return ypredict
 
 def find_gradient(X,y,beta):
@@ -22,7 +20,7 @@ def simple_descent(x,y,condition,iterations,step_size):
     
     rng = default_rng()
     n = len(y)
-    X = np.c_[np.ones((n,1)), x]
+    X = np.c_[np.ones(n), x]
     beta = rng.standard_normal((2,1))
     iter = 0
 
@@ -34,9 +32,7 @@ def simple_descent(x,y,condition,iterations,step_size):
             print('Iterations without momentum: ',iter)
             break
 
-    xnew = np.array([[0],[2]])
-    xbnew = np.c_[np.ones((2,1)), xnew]
-    ypredict = xbnew.dot(beta)
+    ypredict = X @ beta
     return ypredict
 
 
@@ -46,7 +42,7 @@ def momentum_descent(x,y,condition,iterations, step_size, momentum):
     
     rng = default_rng()
     n = len(y)
-    X = np.c_[np.ones((n,1)), x]
+    X = np.c_[np.ones(n), x]
     beta = rng.standard_normal((2,1))
     iter = 0
     change = 0
@@ -55,13 +51,10 @@ def momentum_descent(x,y,condition,iterations, step_size, momentum):
         gradient = find_gradient(X, y, beta)
         change = step_size * gradient + momentum * change
         beta = beta - change
-
         iter += 1
         if abs(np.mean(gradient)) < condition:
             print('Iterations with momentum: ',iter)
             break
 
-    xnew = np.array([[0],[2]])
-    xbnew = np.c_[np.ones((2,1)), xnew]
-    ypredict = xbnew.dot(beta)
+    ypredict = X @ beta
     return ypredict
