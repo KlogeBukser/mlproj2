@@ -27,7 +27,6 @@ def simple_descent(x,y,condition,iterations,step_size):
     for iter in range(iterations):
         gradient = find_gradient(X,y,beta)
         beta -= step_size*gradient
-        iter += 1
         if abs(np.mean(gradient)) < condition:
             print('Iterations GD: ',iter)
             break
@@ -44,14 +43,12 @@ def momentum_descent(x,y,condition,iterations, step_size, momentum):
     n = len(y)
     X = np.c_[np.ones(n), x]
     beta = rng.standard_normal((2,1))
-    iter = 0
     change = 0
 
     for iter in range(iterations):
         gradient = find_gradient(X, y, beta)
         change = step_size * gradient + momentum * change
         beta = beta - change
-        iter += 1
         if abs(np.mean(gradient)) < condition:
             print('Iterations GD (momentum): ',iter)
             break
@@ -77,7 +74,7 @@ def sgd(x, y, condition,iterations, step_size, M):
             X_b = X[batch_indices]
             y_b = y[batch_indices]
             g_b = find_gradient(X_b,y_b,beta)
-            gradient += step_size*g_b
+            gradient = gradient + g_b/m
 
         beta -= step_size*gradient
         if abs(np.mean(gradient)) < condition:
@@ -106,7 +103,7 @@ def sgd_mom(x, y, condition,iterations, step_size, M, momentum):
             X_b = X[batch_indices]
             y_b = y[batch_indices]
             g_b = find_gradient(X_b,y_b,beta)
-            gradient += step_size*g_b
+            gradient = gradient + g_b/m
 
         change = step_size * gradient + momentum * change
         beta -= change
