@@ -1,6 +1,8 @@
 # Importing various packages
 from random import random, seed
 import numpy as np
+from numpy.random import default_rng
+
 
 def lin_reg(x,y):
     n = len(y)
@@ -18,9 +20,10 @@ def find_gradient(X,y,beta):
 def simple_descent(x,y,condition,iterations,step_size):
     """ Simple gradient descent with learning rate 1/(max eigval of hessian matrix) """
     
+    rng = default_rng()
     n = len(y)
     X = np.c_[np.ones((n,1)), x]
-    beta = np.random.randn(2,1)
+    beta = rng.standard_normal((2,1))
     iter = 0
 
     while (iter < iterations):
@@ -41,9 +44,10 @@ def simple_descent(x,y,condition,iterations,step_size):
 def momentum_descent(x,y,condition,iterations, step_size, momentum):
     """ Gradient descent, with momentum, with learning rate 1/(max eigval of hessian matrix). """
     
+    rng = default_rng()
     n = len(y)
     X = np.c_[np.ones((n,1)), x]
-    beta = np.random.randn(2,1)
+    beta = rng.standard_normal((2,1))
     iter = 0
     change = 0
 
