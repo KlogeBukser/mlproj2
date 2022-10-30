@@ -15,14 +15,13 @@ def find_gradient(X,y,beta):
     n = len(y)
     return (2.0/n)*X.T @ (X @ beta-y)
 
-def simple_descent(x,y,condition,iterations,step_size):
+def simple_descent(x, y, beta, condition, iterations, step_size):
     """ Simple gradient descent with learning rate 1/(max eigval of hessian matrix) """
     
-    rng = default_rng()
+
     n = len(y)
     X = np.c_[np.ones(n), x]
-    beta = rng.standard_normal((2,1))
-    iter = 0
+    
 
     for iter in range(iterations):
         gradient = find_gradient(X,y,beta)
@@ -36,17 +35,17 @@ def simple_descent(x,y,condition,iterations,step_size):
 
 
 
-def momentum_descent(x,y,condition,iterations, step_size, momentum):
+def momentum_descent(x, y, beta, condition, iterations, step_size, momentum):
     """ Gradient descent, with momentum, with learning rate 1/(max eigval of hessian matrix). """
     
-    rng = default_rng()
+
     n = len(y)
     X = np.c_[np.ones(n), x]
-    beta = rng.standard_normal((2,1))
     change = 0
 
     for iter in range(iterations):
         gradient = find_gradient(X, y, beta)
+        
         change = step_size * gradient + momentum * change
         beta = beta - change
         if abs(np.mean(gradient)) < condition:
@@ -57,13 +56,13 @@ def momentum_descent(x,y,condition,iterations, step_size, momentum):
     return ypredict
 
 
-def sgd(x, y, condition,iterations, step_size, M):
+def sgd(x, y, beta, condition,iterations, step_size, M):
     """ M: size of batch """
     rng = default_rng()
     n = len(y)
     m = int(n/M) #number of minibatches
     X = np.c_[np.ones(n), x]
-    beta = rng.standard_normal((2,1))
+     
     indices = rng.permuted(np.arange(0,100,1)).reshape((m,M))
     for iter in range(iterations):
         gradient = np.zeros((2,1))
@@ -85,17 +84,18 @@ def sgd(x, y, condition,iterations, step_size, M):
     return ypredict
 
 
-def sgd_mom(x, y, condition,iterations, step_size, M, momentum):
+def sgd_mom(x, y, beta, condition,iterations, step_size, M, momentum):
     """ M: size of batch """
     rng = default_rng()
     n = len(y)
     m = int(n/M) #number of minibatches
     X = np.c_[np.ones(n), x]
-    beta = rng.standard_normal((2,1))
-    indices = rng.permuted(np.arange(0,100,1)).reshape((m,M))
+     
+    indices = np.arange(0,100,1).reshape((m,M))
     change = 0
     for iter in range(iterations):
         gradient = np.zeros((2,1))
+        indices = rng.permuted(indices)
         for i in range(m):
             #Pick the k-th minibatch at random
             k = rng.integers(0,m)

@@ -1,22 +1,25 @@
 import numpy as np
+from numpy.random import default_rng
 import matplotlib.pyplot as plt
 from generate import gen_simple
 from gradient_descent import *
 
 # the number of datapoints
 n_datapoints = 100
-n_iterations = 1000000
+n_iterations = 10000
 step_size = 0.1
 momentum = 0.3
 cond = 1e-4
 batch_size = 5
 x, y = gen_simple(n_datapoints)
+rng = default_rng()
+beta0 = rng.standard_normal((2,1))
 
 
-ypredict = simple_descent(x,y, cond,n_iterations,step_size)
-ypredict_mom = momentum_descent(x, y, cond, n_iterations, step_size, momentum)
-ypredict_sdg = sgd(x, y, cond, n_iterations, step_size, batch_size)
-ypredict_sdg_mom = sgd_mom(x, y, cond, n_iterations, step_size, batch_size, momentum)
+ypredict = simple_descent(x, y, np.copy(beta0), cond, n_iterations, step_size)
+ypredict_mom = momentum_descent(x, y, np.copy(beta0), cond, n_iterations, step_size, momentum)
+ypredict_sdg = sgd(x, y, np.copy(beta0), cond, n_iterations, step_size, batch_size)
+ypredict_sdg_mom = sgd_mom(x, y, np.copy(beta0), cond, n_iterations, step_size, batch_size, momentum)
 
 plt.subplot(221)
 plt.title(r'Stochastic gradient descent')
@@ -48,4 +51,4 @@ plt.xlabel(r'$x$')
 plt.ylabel(r'$y$')
 plt.legend()
 '''
-plt.show()
+#plt.show()
