@@ -4,10 +4,10 @@ import numpy as np
 from numpy.random import default_rng
 
 
-def lin_reg(x,y):
+
+def lin_reg(X,y):
     """ linear regression """
     n = len(y)
-    X = np.c_[np.ones(n), x,np.square(x)]
     
     theta = np.linalg.inv(X.T @ X) @ X.T @ y
     return theta
@@ -17,16 +17,15 @@ def find_gradient(X,y,theta):
     n = len(y)
     return (2.0/n)*X.T @ (X @ theta-y)
 
-def simple_descent(x, y, theta, condition, n_epochs, eta):
+def simple_descent(X, y, theta, condition, n_epochs, eta):
     """ Simple gradient descent """
     
 
     n = len(y)
-    X = np.c_[np.ones(n), x, np.square(x)]
     dtheta = np.zeros((theta.shape))
     for iter in range(n_epochs):
         gradient = find_gradient(X,y,theta)
-        dtheta = -eta*gradient
+        dtheta = eta.update(gradient)
         theta += dtheta
         if abs(np.mean(dtheta)) < condition:
             print('Iterations GD: ',iter)
@@ -36,14 +35,13 @@ def simple_descent(x, y, theta, condition, n_epochs, eta):
 
 
 
-def momentum_descent(x, y, theta, condition, n_epochs, eta, momentum):
+def momentum_descent(X, y, theta, condition, n_epochs, eta, momentum):
     """ Gradient descent with momentum """
     n = len(y)
-    X = np.c_[np.ones(n), x, np.square(x)]
     v = np.zeros((theta.shape))
     for iter in range(n_epochs):
         gradient = find_gradient(X,y,theta)
-        v = momentum*v -eta*gradient     
+        v = momentum*v + eta.update(gradient)  
         theta += v
         if abs(np.mean(v)) < condition:
             print('Iterations GD (momentum): ',iter)
@@ -52,12 +50,11 @@ def momentum_descent(x, y, theta, condition, n_epochs, eta, momentum):
     return theta
 
 
-def sgd(x, y, theta, condition,n_epochs, eta, M):
+def sgd(X, y, theta, condition,n_epochs, eta, M):
     """ Stochastic gradient descent """
     rng = default_rng()
     n = len(y)
     m = int(n/M) #number of minibatches
-    X = np.c_[np.ones(n), x,np.square(x)]
      
     indices = np.arange(0,n,1).reshape((m,M))
     for iter in range(n_epochs):
@@ -72,7 +69,7 @@ def sgd(x, y, theta, condition,n_epochs, eta, M):
             g_b = find_gradient(X_b,y_b,theta)
             gradient += g_b
 
-        dtheta = -eta*gradient/m
+        dtheta = eta.update(gradient)/m
         theta += dtheta
         if abs(np.mean(dtheta)) < condition:
             print('Iterations SDG: ', iter)
@@ -81,13 +78,12 @@ def sgd(x, y, theta, condition,n_epochs, eta, M):
     return theta
 
 
-def sgd_mom(x, y, theta, condition,n_epochs, eta, M, momentum):
+def sgd_mom(X, y, theta, condition,n_epochs, eta, M, momentum):
     """ Stochastic gradient descent with momentum """
 
     rng = default_rng()
     n = len(y)
     m = int(n/M) #number of minibatches
-    X = np.c_[np.ones(n), x,np.square(x)]
      
     indices = np.arange(0,n,1).reshape((m,M))
     v = np.zeros((theta.shape))
@@ -103,7 +99,7 @@ def sgd_mom(x, y, theta, condition,n_epochs, eta, M, momentum):
             g_b = find_gradient(X_b,y_b,theta)
             gradient += g_b
 
-        v = -eta * gradient/m + momentum * v
+        v = eta.update(gradient)/m + momentum * v
         theta += v
         if abs(np.mean(v)) < condition:
             print('Iterations SDG (momentum): ', iter)
