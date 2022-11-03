@@ -7,39 +7,46 @@ from gradient_descent import *
 # the number of datapoints
 n_datapoints = 100
 n_iterations = 10000
-step_size = 0.1
+learning_rate = 0.1
 momentum = 0.3
 cond = 1e-4
 batch_size = 5
 x, y = gen_simple(n_datapoints)
 rng = default_rng()
-beta0 = rng.standard_normal((2,1))
+beta0 = rng.standard_normal((3,1))
 
 
-ypredict = simple_descent(x, y, np.copy(beta0), cond, n_iterations, step_size)
-ypredict_mom = momentum_descent(x, y, np.copy(beta0), cond, n_iterations, step_size, momentum)
-ypredict_sdg = sgd(x, y, np.copy(beta0), cond, n_iterations, step_size, batch_size)
-ypredict_sdg_mom = sgd_mom(x, y, np.copy(beta0), cond, n_iterations, step_size, batch_size, momentum)
+
+
+
+
+
+x_new = np.linspace(np.min(x),np.max(x),n_datapoints)
+X = np.c_[np.ones(n_datapoints),x_new,np.square(x_new)]
 
 plt.subplot(221)
 plt.title(r'Stochastic gradient descent')
-plt.plot(x, ypredict_sdg, '-b')
+ypredict_sdg = X @ sgd(x, y, np.copy(beta0), cond, n_iterations, learning_rate, batch_size)
+plt.plot(x_new, ypredict_sdg, '-b')
 plt.plot(x, y ,'r.')
 plt.ylabel('Without momentum')
 
 
 plt.subplot(222)
 plt.title(r'Gradient descent')
-plt.plot(x, ypredict_mom, '-b')
+ypredict_mom = X @ momentum_descent(x, y, np.copy(beta0), cond, n_iterations, learning_rate, momentum)
+plt.plot(x_new, ypredict_mom, '-b')
 plt.plot(x, y ,'r.')
 
 plt.subplot(223)
-plt.plot(x, ypredict_sdg_mom, '-b')
+ypredict_sdg_mom = X @ sgd_mom(x, y, np.copy(beta0), cond, n_iterations, learning_rate, batch_size, momentum)
+plt.plot(x_new, ypredict_sdg_mom, '-b')
 plt.plot(x, y ,'r.')
 plt.ylabel('With momentum')
 
 plt.subplot(224)
-plt.plot(x, ypredict, '-b')
+ypredict = X @ simple_descent(x, y, np.copy(beta0), cond, n_iterations, learning_rate)
+plt.plot(x_new, ypredict, '-b')
 plt.plot(x, y ,'r.')
 
 
@@ -51,4 +58,4 @@ plt.xlabel(r'$x$')
 plt.ylabel(r'$y$')
 plt.legend()
 '''
-#plt.show()
+plt.show()
