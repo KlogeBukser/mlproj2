@@ -66,7 +66,7 @@ def sgd(X, y, theta, condition,n_epochs, eta, M):
             g_b = find_gradient(X_b,y_b,theta)
             gradient += g_b
 
-        dtheta = eta.update(gradient)/m
+        dtheta = eta.update(gradient/m)
         theta += dtheta
         if abs(np.mean(dtheta)) < condition:
             print('Iterations SDG: ', iter)
@@ -96,7 +96,7 @@ def sgd_mom(X, y, theta, condition,n_epochs, eta, M, momentum):
             g_b = find_gradient(X_b,y_b,theta)
             gradient += g_b
 
-        v = eta.update(gradient)/m + momentum * v
+        v = eta.update(gradient/m) + momentum * v
         theta += v
         if abs(np.mean(v)) < condition:
             print('Iterations SDG (momentum): ', iter)

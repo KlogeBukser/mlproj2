@@ -16,7 +16,6 @@ class ADA:
         self.epsilon = learning_rate
         self.delta = delta
         self.feature_count = n_features
-        #self.r = np.zeros((n_features,1))
         self.reset()
 
     def update(self,g):
