@@ -7,7 +7,6 @@ from numpy.random import default_rng
 
 def lin_reg(X,y):
     """ linear regression """
-    n = len(y)
     
     theta = np.linalg.inv(X.T @ X) @ X.T @ y
     return theta
@@ -20,8 +19,6 @@ def find_gradient(X,y,theta):
 def simple_descent(X, y, theta, condition, n_epochs, eta):
     """ Simple gradient descent """
     
-
-    n = len(y)
     dtheta = np.zeros((theta.shape))
     for iter in range(n_epochs):
         gradient = find_gradient(X,y,theta)
@@ -37,7 +34,7 @@ def simple_descent(X, y, theta, condition, n_epochs, eta):
 
 def momentum_descent(X, y, theta, condition, n_epochs, eta, momentum):
     """ Gradient descent with momentum """
-    n = len(y)
+
     v = np.zeros((theta.shape))
     for iter in range(n_epochs):
         gradient = find_gradient(X,y,theta)
