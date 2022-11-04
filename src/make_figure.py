@@ -5,12 +5,7 @@ from generate import gen_simple
 from gradient_descent import *
 from learning_rates import *
 from misc import make_design_1D
-from make_figure import make_subplot
 
-make_subplot(eta_method = 'ada', n_features = 3,learning_rate = 0.1, batch_size = 5)
-
-
-'''
 def make_subplot(eta_method = 'basic', n_features = 3,learning_rate = 0.5,batch_size = 5):
     n_datapoints = 100
     n_iterations = 10000
@@ -19,13 +14,14 @@ def make_subplot(eta_method = 'basic', n_features = 3,learning_rate = 0.5,batch_
     batch_size = 5
     x, y = gen_simple(n_features, n_datapoints)
     X = make_design_1D(x,n_features)
-    rng = default_rng()
     theta0 = np.ones((n_features,1))*0.5
+
+    print(eta_method)
 
     if eta_method == 'basic':
         eta = Basic_learning_rate(learning_rate)
     if eta_method == 'ada':
-        eta_ada = ADA(n_features,learning_rate)
+        eta = ADA(n_features,learning_rate)
 
 
     x_new = np.linspace(np.min(x),np.max(x),n_datapoints)
@@ -60,4 +56,3 @@ def make_subplot(eta_method = 'basic', n_features = 3,learning_rate = 0.5,batch_
     plt.plot(x, y ,'r.')
 
     plt.show()
-'''
