@@ -7,7 +7,7 @@ from learning_rates import *
 from misc import make_design_1D
 from make_figure import make_subplot
 
-make_subplot(eta_method = 'adam', n_features = 4,learning_rate = 0.01, batch_size = 5)
+make_subplot(eta_method = 'rms', n_features = 4,learning_rate = 0.01, batch_size = 5)
 
 
 '''

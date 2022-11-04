@@ -14,14 +14,19 @@ def lin_reg(X,y):
 def find_gradient(X,y,theta):
     """ Function for finding the gradient """
     n = len(y)
-    return (2.0/n)*X.T @ (X @ theta-y)
+    return (2/n)*X.T @ (X @ theta-y)
+
+def find_gradient_ridge(X,y,theta,lamb):
+    """ Function for finding the gradient """
+    n = len(y)
+    return 2*((1/n)*X.T @ (X @ theta-y) + lamb*theta)
 
 def simple_descent(X, y, theta, condition, n_epochs, eta):
     """ Simple gradient descent """
     
     dtheta = np.zeros((theta.shape))
     for iter in range(n_epochs):
-        gradient = find_gradient(X,y,theta)
+        gradient = find_gradient_ridge(X,y,theta,0.001)
         dtheta = eta.update(gradient)
         theta += dtheta
         if abs(np.mean(dtheta)) < condition:
@@ -37,7 +42,7 @@ def momentum_descent(X, y, theta, condition, n_epochs, eta, momentum):
 
     v = np.zeros((theta.shape))
     for iter in range(n_epochs):
-        gradient = find_gradient(X,y,theta)
+        gradient = find_gradient_ridge(X,y,theta,0.001)
         v = momentum*v + eta.update(gradient)  
         theta += v
         if abs(np.mean(v)) < condition:
@@ -63,7 +68,7 @@ def sgd(X, y, theta, condition,n_epochs, eta, M):
             batch_indices = indices[k]
             X_b = X[batch_indices]
             y_b = y[batch_indices]
-            g_b = find_gradient(X_b,y_b,theta)
+            g_b = find_gradient_ridge(X_b,y_b,theta,0.001)
             gradient += g_b
 
         dtheta = eta.update(gradient/m)
@@ -93,7 +98,7 @@ def sgd_mom(X, y, theta, condition,n_epochs, eta, M, momentum):
             batch_indices = indices[k]
             X_b = X[batch_indices]
             y_b = y[batch_indices]
-            g_b = find_gradient(X_b,y_b,theta)
+            g_b = find_gradient_ridge(X_b,y_b,theta,0.001)
             gradient += g_b
 
         v = eta.update(gradient/m) + momentum * v
