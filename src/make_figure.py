@@ -8,7 +8,7 @@ from misc import make_design_1D
 
 def make_subplot(eta_method = 'basic', n_features = 3,learning_rate = 0.5,batch_size = 5):
     n_datapoints = 100
-    n_iterations = 10000
+    n_iterations = 100000
     momentum = 0.3
     cond = 1e-4
     batch_size = 5
@@ -16,12 +16,15 @@ def make_subplot(eta_method = 'basic', n_features = 3,learning_rate = 0.5,batch_
     X = make_design_1D(x,n_features)
     theta0 = np.ones((n_features,1))*0.5
 
-    print(eta_method)
 
     if eta_method == 'basic':
         eta = Basic_learning_rate(learning_rate)
     if eta_method == 'ada':
         eta = ADA(n_features,learning_rate)
+    if eta_method == 'rms':
+        eta = RMSProp(n_features,learning_rate)
+    if eta_method == 'adam':
+        eta = RMSProp(n_features,learning_rate)
 
 
     x_new = np.linspace(np.min(x),np.max(x),n_datapoints)
