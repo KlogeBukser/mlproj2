@@ -28,7 +28,7 @@ def find_best_hyperparams(min_eta, max_eta, min_lmbd, max_lmbd):
 		continue
 
 
-def visualise():
+def visualiser():
 	# seeborn heat map learning_rate vs lambda
 	pass
 

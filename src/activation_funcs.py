@@ -14,7 +14,7 @@ class ActivationFunction:
 		if gradient:
 			self.gradient = gradient
 		else:
-			self.auto_grad_it()
+			self.auto_grad()
 
 	def auto_grad():
 		self.gradient = grad(self.func)

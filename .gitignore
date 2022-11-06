@@ -130,7 +130,7 @@ dmypy.json
 
 # Latex
 .aux
-.latexmk
+.fdb_latexmk
 .fls
 .out
 .gz
@@ -139,3 +139,5 @@ dmypy.json
 # mac
 .DS_Store
 
+# specific
+example.py
