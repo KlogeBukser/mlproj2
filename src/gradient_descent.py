@@ -3,16 +3,16 @@ from random import random, seed
 import numpy as np
 from numpy.random import default_rng
 
-def simple_descent(X, y, theta,n_epochs, eta):
+def simple_descent(X, y, theta,lmbda,n_epochs, eta):
     return gradient_descent(X, y, theta,n_epochs, eta, len(y), 0)
 
-def momentum_descent(X, y, theta,n_epochs, eta, momentum):
-    return gradient_descent(X, y, theta,n_epochs, eta, len(y), momentum)
+def momentum_descent(X, y, theta,lmbda,n_epochs, eta, momentum):
+    return gradient_descent(X, y, theta,lmbda,n_epochs, eta, len(y), momentum)
 
-def sgd(X, y, theta,n_epochs, eta, m):
-    return gradient_descent(X, y, theta,n_epochs, eta, m, 0)
+def sgd(X, y, theta,lmbda,n_epochs, eta, m):
+    return gradient_descent(X, y, theta,lmbda,n_epochs, eta, m, 0)
 
-def gradient_descent(X, y, theta,n_epochs, eta, m, momentum):
+def gradient_descent(X, y, theta,lmbda,n_epochs, eta, m, momentum):
     """ Gradient descent with momentum """
 
     rng = default_rng()
@@ -31,7 +31,7 @@ def gradient_descent(X, y, theta,n_epochs, eta, m, momentum):
             batch_indices = indices[k]
             X_b = X[batch_indices]
             y_b = y[batch_indices]
-            g_b = find_gradient_ridge(X_b,y_b,theta,0.001)
+            g_b = find_gradient_ridge(X_b,y_b,theta,lmbda)
             gradient += g_b
 
         v = eta.update(gradient/m) + momentum * v
