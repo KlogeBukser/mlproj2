@@ -19,7 +19,7 @@ def gradient_descent(X, y, theta,n_epochs, eta, m, momentum):
     n = len(y)
     M = int(n/m) # Size of minibatches
      
-    indices = np.arange(0,n,1).reshape((m,M))
+    indices = np.arange(0,m*M,1).reshape((m,M))
     v = np.zeros((theta.shape))
     thetas = np.zeros((n_epochs,theta.shape[0]))
     for i in range(n_epochs):
