@@ -13,7 +13,6 @@ def make_subplot(eta_method = 'basic', n_features = 3,learning_rate = 0.01,batch
     n_datapoints = 100
     n_iterations = 100000
     momentum = 0.3
-    cond = 1e-4
     batch_size = 5
     x, y = gen_simple(n_features, n_datapoints)
     X = make_design_1D(x,n_features)
@@ -27,7 +26,7 @@ def make_subplot(eta_method = 'basic', n_features = 3,learning_rate = 0.01,batch
 
     plt.subplot(221)
     plt.title(r'Stochastic gradient descent')
-    ypredict_sdg = X_new @ sgd(X, y, np.copy(theta0), cond, n_iterations, eta, batch_size)
+    ypredict_sdg = X_new @ sgd(X, y, np.copy(theta0), n_iterations, eta, batch_size)
     plt.plot(x_new, ypredict_sdg, '-b')
     plt.plot(x, y ,'r.')
     plt.ylabel('Without momentum')
@@ -36,20 +35,20 @@ def make_subplot(eta_method = 'basic', n_features = 3,learning_rate = 0.01,batch
 
     plt.subplot(222)
     plt.title(r'Gradient descent')
-    ypredict_mom = X_new @ momentum_descent(X, y, np.copy(theta0), cond, n_iterations, eta, momentum)
+    ypredict_mom = X_new @ momentum_descent(X, y, np.copy(theta0), n_iterations, eta, momentum)
     plt.plot(x_new, ypredict_mom, '-b')
     plt.plot(x, y ,'r.')
     eta.reset()
 
     plt.subplot(223)
-    ypredict_sdg_mom = X_new @ sgd_mom(X, y, np.copy(theta0), cond, n_iterations, eta, batch_size, momentum)
+    ypredict_sdg_mom = X_new @ gradient_descent(X, y, np.copy(theta0), n_iterations, eta, batch_size, momentum)
     plt.plot(x_new, ypredict_sdg_mom, '-b')
     plt.plot(x, y ,'r.')
     plt.ylabel('With momentum')
     eta.reset()
 
     plt.subplot(224)
-    ypredict = X_new @ simple_descent(X, y, np.copy(theta0), cond, n_iterations, eta)
+    ypredict = X_new @ simple_descent(X, y, np.copy(theta0), n_iterations, eta)
     plt.plot(x_new, ypredict, '-b')
     plt.plot(x, y ,'r.')
 

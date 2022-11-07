@@ -12,54 +12,32 @@ from make_figure import make_subplot
 n_datapoints = 100
 n_iterations = 100
 n_features = 3
-n_learning_rates = 100
-M = 5
-momentum = 0.3
-cond = 1e-4
-batch_size = 5
-x, y = gen_simple(n_features, n_datapoints)
+x, y = gen_simple(n_datapoints)
 X = make_design_1D(x,n_features)
 rng = default_rng()
-theta0 = np.ones((n_features,1))*0.5
 learning_rate = 0.01
 
 
-
-
-eta_method = 'basic'
+eta_method = 'adam'
 
 eta = make_adaptive_learner(eta_method,n_features,learning_rate)
 
-'''simple_thetas = simple_descent(X, y, theta0, cond,n_iterations, eta)
-eta.reset()
-
-momentum_thetas = momentum_descent(X, y, theta0, cond,n_iterations, eta, momentum)
-eta.reset()
-
-sgd_thetas = sgd(X, y, theta0, cond,n_iterations, eta, M)
-eta.reset()
-
-sgd_mom_thetas = gradient_descent(X, y, theta0, cond,n_iterations, eta, M, momentum)
-eta.reset()'''
 
 
+mse = np.zeros(n_iterations)
+iterations = np.arange(0,n_iterations,1)
+batches = np.arange(1,10,1)
 
 
-x_new = np.linspace(np.min(x),np.max(x),n_datapoints)
-X_new = make_design_1D(x_new,n_features)
-mse = np.zeros(n_datapoints)
-momentums = np.arange(0,1,0.2)
-iterations = np.arange(0,n_datapoints,1)
-
-for momentum in momentums:
-    thetas = momentum_descent(X, y, theta0, cond,n_iterations, eta, momentum)
-    eta.reset()
+for n_batches in batches:
+    theta0 = np.ones((n_features,1))
+    thetas = gradient_descent(X, y, theta0, n_iterations, eta, n_batches, 0)
     for i in iterations:
 
-        y_pred = X_new @ thetas[i]
+        y_pred = X @ thetas[i]
         mse[i] = MSE(y_pred,y)
 
-    plt.plot(iterations,mse,label = 'momentum = %.2f' % (momentum))
+    plt.plot(iterations,np.log(mse),label = 'Batches = %d' % (n_batches))
 
 plt.title('Momentum plot')
 plt.xlabel('Iterations')
