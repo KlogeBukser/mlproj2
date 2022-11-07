@@ -9,15 +9,15 @@ def simple_descent(X, y, theta,n_epochs, eta):
 def momentum_descent(X, y, theta,n_epochs, eta, momentum):
     return gradient_descent(X, y, theta,n_epochs, eta, len(y), momentum)
 
-def sgd(X, y, theta,n_epochs, eta, M):
-    return gradient_descent(X, y, theta,n_epochs, eta, M, 0)
+def sgd(X, y, theta,n_epochs, eta, m):
+    return gradient_descent(X, y, theta,n_epochs, eta, m, 0)
 
-def gradient_descent(X, y, theta,n_epochs, eta, M, momentum):
+def gradient_descent(X, y, theta,n_epochs, eta, m, momentum):
     """ Gradient descent with momentum """
 
     rng = default_rng()
     n = len(y)
-    m = int(n/M) #number of minibatches
+    M = int(n/m) # Size of minibatches
      
     indices = np.arange(0,n,1).reshape((m,M))
     v = np.zeros((theta.shape))
