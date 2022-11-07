@@ -28,23 +28,8 @@ eta_method = 'basic'
 
 eta = make_adaptive_learner(eta_method,n_features,learning_rate)
 
-'''simple_thetas = simple_descent(X, y, theta0, cond,n_iterations, eta)
-eta.reset()
-
-momentum_thetas = momentum_descent(X, y, theta0, cond,n_iterations, eta, momentum)
-eta.reset()
-
-sgd_thetas = sgd(X, y, theta0, cond,n_iterations, eta, M)
-eta.reset()
-
-sgd_mom_thetas = gradient_descent(X, y, theta0, cond,n_iterations, eta, M, momentum)
-eta.reset()'''
 
 
-
-
-x_new = np.linspace(np.min(x),np.max(x),n_datapoints)
-X_new = make_design_1D(x_new,n_features)
 mse = np.zeros(n_datapoints)
 momentums = np.arange(0,1,0.2)
 iterations = np.arange(0,n_datapoints,1)
@@ -56,7 +41,7 @@ for n_batches in batches:
     thetas = gradient_descent(X, y, theta0, n_iterations, eta, batch_size, 0)
     for i in iterations:
 
-        y_pred = X_new @ thetas[i]
+        y_pred = X @ thetas[i]
         mse[i] = MSE(y_pred,y)
 
     plt.plot(iterations,mse,label = 'Batches = %d' % (n_batches))
