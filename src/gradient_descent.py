@@ -41,6 +41,7 @@ def gradient_descent(X, y, theta,n_epochs, eta, m, momentum):
             print('Iterations SDG (momentum): ', iter)
             break'''
     
+    eta.reset()
     return thetas
 
 def lin_reg(X,y):

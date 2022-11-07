@@ -19,7 +19,6 @@ batch_size = 5
 x, y = gen_simple(n_features, n_datapoints)
 X = make_design_1D(x,n_features)
 rng = default_rng()
-theta0 = np.ones((n_features,1))*0.5
 learning_rate = 0.01
 
 
@@ -49,16 +48,18 @@ X_new = make_design_1D(x_new,n_features)
 mse = np.zeros(n_datapoints)
 momentums = np.arange(0,1,0.2)
 iterations = np.arange(0,n_datapoints,1)
+batches = np.arange(1,10,1)
 
-for momentum in momentums:
-    thetas = momentum_descent(X, y, theta0, n_iterations, eta, momentum)
-    eta.reset()
+
+for n_batches in batches:
+    theta0 = np.ones((n_features,1))*0.1
+    thetas = gradient_descent(X, y, theta0, n_iterations, eta, batch_size, 0)
     for i in iterations:
 
         y_pred = X_new @ thetas[i]
         mse[i] = MSE(y_pred,y)
 
-    plt.plot(iterations,mse,label = 'momentum = %.2f' % (momentum))
+    plt.plot(iterations,mse,label = 'Batches = %d' % (n_batches))
 
 plt.title('Momentum plot')
 plt.xlabel('Iterations')
