@@ -62,7 +62,7 @@ def sgd_figures(x, y, eta_method = 'basic', n_features = 3,n_iterations = 100):
             y_pred = X @ thetas[i]
             mse[i] = MSE(y_pred,y)
 
-        plt.plot(iterations,np.log(mse),label = 'lambda: %.0e' % (lmbda))
+        plt.plot(iterations,np.log(mse),label = r'$\lambda$: %.0e' % (lmbda))
 
     plt.title('Comparison of lambdas')
     plt.legend()
