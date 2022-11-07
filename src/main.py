@@ -15,7 +15,6 @@ n_features = 3
 n_learning_rates = 100
 M = 5
 momentum = 0.3
-cond = 1e-4
 batch_size = 5
 x, y = gen_simple(n_features, n_datapoints)
 X = make_design_1D(x,n_features)
@@ -52,7 +51,7 @@ momentums = np.arange(0,1,0.2)
 iterations = np.arange(0,n_datapoints,1)
 
 for momentum in momentums:
-    thetas = momentum_descent(X, y, theta0, cond,n_iterations, eta, momentum)
+    thetas = momentum_descent(X, y, theta0, n_iterations, eta, momentum)
     eta.reset()
     for i in iterations:
 
