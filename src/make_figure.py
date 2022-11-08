@@ -1,11 +1,44 @@
 import numpy as np
 import seaborn as sns
+import pandas as pd
 from numpy.random import default_rng
 import matplotlib.pyplot as plt
 from generate import gen_simple
 from gradient_descent import *
 from learning_rates import *
 from misc import *
+
+def make_dataframe_sgd(x, y, eta_method = 'basic', n_features = 3,n_iterations = 100,n_predictions = 1000):
+    X = make_design_1D(x,n_features)
+    rng = default_rng()
+
+
+    data = {'learning_rates' : {}, 'number_of_batches' : {}, 'lmbdas' : {}, 'mse' : {}}
+    df = pd.DataFrame(data)
+
+    for i in range(n_predictions):
+        rate = rng.uniform(0.02,0.1)
+        batch = rng.integers(1,20)
+        lmbda = 10**rng.uniform(-8,-1)
+
+        eta = make_adaptive_learner(eta_method,n_features,rate)
+        theta0 = np.ones((n_features,1))
+        theta_final = gradient_descent(X, y, theta0, lmbda, n_iterations, eta, batch, 0)[-1]
+        y_pred = X @ theta_final
+
+        df.loc[len(df.index)] = [rate,batch,np.log10(lmbda),MSE(y_pred,y)]
+
+    return df
+
+def make_sgd_pairplot(df ,method = 'basic'):
+    g = sns.PairGrid(df,hue = "mse")
+    g.map_offdiag(sns.scatterplot)
+    
+
+    g.add_legend()
+    
+    plt.show()
+
 
 
 def sgd_figures(x, y, eta_method = 'basic', n_features = 3,n_iterations = 100):
