@@ -28,7 +28,7 @@ def basic_nn_pred(learning_rate, lmbd):
 	# print("y_train is",y_train.shape)
 
 	nn = NNRegressor(X_train,y_train, 2, np.array([50,50]), learning_rate, lmbd)
-	nn.train()
+	nn.train2()
 	pred = nn.predict(X_test)
 	# print(X_test)
 	# print(y_test)
@@ -72,7 +72,7 @@ X_train, X_test, y_train, y_test = train_test_split(data,target, train_size=0.8,
 
 # result using my_nn
 # regression 
-basic_nn_pred(0.0001, 0.0)
+basic_nn_pred(0.001, 0.01)
 
 # classification
 
