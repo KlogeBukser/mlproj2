@@ -10,21 +10,29 @@ from generate import gen_simple
 
 
 def basic_nn_pred(learning_rate, lmbd):
-	x,y = gen_simple(100)
-			X_inputs, 
-			Y_inputs,  
-			n_hidden_layers, 
-			n_nodes, 
-			gd_func,
-			n_catagories,
-			acti_func_out=sigmoid,
-			n_epochs=10, 
-			batch_size=100, 
-			learning_rate=0.01, 
-			lmbd=0.0,
-	nn = NNregressor(x,y, 2, np.array([50,50]), learning_rate, lmbd)
+	x,y = gen_simple(1000)
+	# print(x)
+	# X_inputs, 
+	# Y_inputs,  
+	# n_hidden_layers, 
+	# n_nodes, 
+	# n_catagories,
+	# acti_func_out=sigmoid,
+	# n_epochs=10, 
+	# batch_size=100, 
+	# learning_rate=0.01, 
+	# lmbd=0.0,
+
+
+	X_train, X_test, y_train, y_test = train_test_split(x,y, train_size=0.8, test_size=0.2)
+	# print("y_train is",y_train.shape)
+
+	nn = NNRegressor(X_train,y_train, 2, np.array([50,50]), learning_rate, lmbd)
 	nn.train()
-	pred = nn.predict()
+	pred = nn.predict(X_test)
+	# print(X_test)
+	# print(y_test)
+	print(pred)
 
 	# score = cal_accuracy(pred, test)
 
@@ -64,7 +72,7 @@ X_train, X_test, y_train, y_test = train_test_split(data,target, train_size=0.8,
 
 # result using my_nn
 # regression 
-basic_nn_pred(0.001, 1)
+basic_nn_pred(0.0001, 0.0)
 
 # classification
 
