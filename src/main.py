@@ -3,7 +3,7 @@ from generate import gen_simple
 from make_figure import *
 
 eta_method = 'adam'
-n_datapoints = 3000
+n_datapoints = 300
 x, y = gen_simple(n_datapoints)
 
 n_features = 3

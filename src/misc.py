@@ -21,7 +21,7 @@ def make_adaptive_learner(eta_method = 'basic', n_features = 3, learning_rate = 
     if eta_method == 'rms':
         return RMSProp(n_features,learning_rate)
     if eta_method == 'adam':
-        return RMSProp(n_features,learning_rate)
+        return ADAM(n_features,learning_rate)
 
     return Basic_learning_rate(learning_rate)
 

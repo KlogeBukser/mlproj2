@@ -52,6 +52,7 @@ class RMSProp:
     def reset(self):
         self.r = np.zeros((self.feature_count,1))
 
+
 class ADAM:
     """ ADAM method for tuning the learning rate """
     def __init__(self, n_features, learning_rate = 0.001, delta = 1e-8, rho1 = 0.9, rho2 = 0.999):
@@ -60,7 +61,6 @@ class ADAM:
         self.feature_count = n_features # Polynomial degree/number of features
         self.rho1 = rho1                # Decay rate of first order momentum
         self.rho2 = rho2                # Decay rate of second order momentum
-        self.t = 0                      # Number of updates/Param for scaling momentum values
         self.reset()                    # Function for setting member values to their initial values
 
     def update(self,g):
@@ -71,12 +71,11 @@ class ADAM:
         """
         self.t += 1
         self.s = self.rho1*self.s + (1-self.rho1)*g
-        s_scaled = self.s/(1-self.rho1**self.t)
         self.r = self.rho2*self.r + (1-self.rho2)*np.square(g)
+        s_scaled = self.s/(1-self.rho1**self.t)
         r_scaled = self.r/(1-self.rho2**self.t)
         
-        fraction = np.divide(s_scaled,self.delta + np.sqrt(r_scaled))
-        return -self.epsilon*np.multiply(fraction,g)
+        return -self.epsilon*np.divide(s_scaled,self.delta + np.sqrt(r_scaled))
 
     def reset(self):
         self.r = np.zeros((self.feature_count,1))
