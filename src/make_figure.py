@@ -74,12 +74,12 @@ def make_sgd_compare_plot(x, y, n_features, n_iterations, n_predictions):
     
     
     g = sns.pairplot(data=df, x_vars=['learning_rates', 'number_of_batches', 'lmbdas'], y_vars = ['mse'], hue='eta')
-    g.fig.subplots_adjust(top=0.96)
-    g.fig.suptitle('Mean squared error after ' + str(n_iterations))
+    g.fig.subplots_adjust(top=0.85)
+    g.fig.suptitle('Mean squared error after ' + str(n_iterations) + ' iterations')
     plt.show()
 
     df = df.drop(df[df['eta'] == 'ada'].index)
     g = sns.pairplot(data=df, x_vars=['learning_rates', 'number_of_batches', 'lmbdas'], y_vars = ['mse'], hue='eta')
-    g.fig.subplots_adjust(top=0.96)
-    g.fig.suptitle('Mean squared error after ' + str(n_iterations))
+    g.fig.subplots_adjust(top=0.85)
+    g.fig.suptitle('Mean squared error after ' + str(n_iterations) + ' iterations')
     plt.show()
