@@ -35,7 +35,7 @@ def make_dataframe_sgd(x, y, n_features = 3,n_iterations = 100,n_predictions = 1
 
         eta = make_adaptive_learner(eta_method,n_features,rate)
         theta0 = np.copy(theta_init)
-        theta_final = np.mean(gradient_descent(X_train, y_train, theta0, lmbda, n_iterations, eta, batch, 0)[-2:],axis = 0)
+        theta_final = np.mean(gradient_descent(X_train, y_train, theta0, lmbda, n_iterations, eta, batch)[-2:],axis = 0)
         y_pred = X_test @ theta_final
 
         df.loc[len(df.index)] = [rate,batch,np.log10(lmbda),np.log(MSE(y_pred,y_test)),eta_method]
@@ -53,7 +53,7 @@ def make_epoch_plot(x, y, n_iterations,n_features,lmbda,eta_method,n_batches,lea
 
     
     theta_init = guess_initial_theta(X_train[1],y_train,n_features)
-    thetas = gradient_descent(X_train, y_train, theta_init, lmbda, n_iterations, eta, n_batches, 0)
+    thetas = gradient_descent(X_train, y_train, theta_init, lmbda, n_iterations, eta, n_batches)
     mses = np.empty(thetas.shape[0])
     for i in iterations:
         y_pred = X_test @ thetas[i]

@@ -4,15 +4,10 @@ import numpy as np
 from numpy.random import default_rng
 
 def simple_descent(X, y, theta,lmbda,n_epochs, eta):
-    return gradient_descent(X, y, theta,n_epochs, eta, len(y), 0)
+    return gradient_descent(X, y, theta,n_epochs, eta, len(y))
 
-def momentum_descent(X, y, theta,lmbda,n_epochs, eta, momentum):
-    return gradient_descent(X, y, theta,lmbda,n_epochs, eta, len(y), momentum)
 
-def sgd(X, y, theta,lmbda,n_epochs, eta, m):
-    return gradient_descent(X, y, theta,lmbda,n_epochs, eta, m, 0)
-
-def sgd_one_epoch(X,y,rng,theta,n_batches,lmbda,momentum,eta,indices):
+def sgd_one_epoch(X,y,rng,theta,n_batches,lmbda,eta,indices):
     gradient = np.zeros((theta.shape))
     indices = rng.permuted(indices)
     for j in range(n_batches):
@@ -24,26 +19,22 @@ def sgd_one_epoch(X,y,rng,theta,n_batches,lmbda,momentum,eta,indices):
         g_b = find_gradient_ridge(X_b,y_b,theta,lmbda)
         gradient += g_b
 
-    
-    return gradient
+    return eta.update(gradient/n_batches)
 
-def gradient_descent(X, y, theta,lmbda,n_epochs, eta, n_batches, momentum):
-    """ Gradient descent with momentum """
+def gradient_descent(X, y, theta, lmbda, n_epochs, eta, n_batches):
+    """ Gradient descent """
 
     rng = default_rng()
     n = len(y)
     M = int(n/n_batches) # Size of minibatches
      
     indices = np.arange(0,n_batches*M,1).reshape((n_batches,M))
-    v = np.zeros((theta.shape))
+    change = np.zeros((theta.shape))
     thetas = np.zeros((n_epochs,theta.shape[0]))
     for i in range(n_epochs):
-        gradient = sgd_one_epoch(X,y,rng,theta,n_batches,lmbda,momentum,eta,indices)
-
-        v = eta.update(gradient/n_batches) + momentum * v
-        theta += v
+        change = sgd_one_epoch(X,y,rng,theta,n_batches,lmbda,eta,indices)
+        theta += change
         thetas[i] = theta.ravel()
-    
     eta.reset()
     return thetas
 
