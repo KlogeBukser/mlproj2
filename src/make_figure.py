@@ -1,137 +1,85 @@
-import numpy as np
-import seaborn as sns
-import pandas as pd
-from numpy.random import default_rng
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from numpy.random import default_rng
+from sklearn.model_selection import train_test_split
+
 from gradient_descent import *
 from learning_rates import *
 from misc import *
-from sklearn.model_selection import train_test_split
+
 
 def guess_initial_theta(x,y,n_features):
-    theta_init = np.zeros((n_features, 1))
+    theta_init = np.ones((n_features, 1))
     '''theta_init[0] = np.mean(y)
     theta_init[1] = (np.max(y)-np.min(y))/(np.max(x) - np.min(x))'''
     return theta_init
 
-def make_dataframe_sgd(x, y, eta_method = 'basic', n_features = 3,n_iterations = 100,n_predictions = 1000):
+def make_dataframe_sgd(x, y, n_features = 3,n_iterations = 100,n_predictions = 1000, eta_algos = ['basic','ada','rms','adam']):
     X = make_design_1D(x,n_features)
     X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
 
     rng = default_rng()
 
 
-    data = {'learning_rates' : {}, 'number_of_batches' : {}, 'lmbdas' : {}, 'mse' : {}}
+    data = {'learning_rates' : {}, 'number_of_batches' : {}, 'lmbdas' : {}, 'mse' : {}, 'eta' : {}}
     df = pd.DataFrame(data)
     theta_init = guess_initial_theta(X_train[1],y_train,n_features)
 
     for i in range(n_predictions):
-        rate = rng.uniform(0.02,0.1)
+        rate = rng.uniform(0.02,0.15)
         batch = rng.integers(1,20)
         lmbda = 10**rng.uniform(-8,-1)
+        eta_method = rng.choice(eta_algos)
 
         eta = make_adaptive_learner(eta_method,n_features,rate)
         theta0 = np.copy(theta_init)
-        theta_final = gradient_descent(X_train, y_train, theta0, lmbda, n_iterations, eta, batch, 0)[-1]
+        theta_final = np.mean(gradient_descent(X_train, y_train, theta0, lmbda, n_iterations, eta, batch, 0)[-2:],axis = 0)
         y_pred = X_test @ theta_final
 
-        df.loc[len(df.index)] = [rate,batch,np.log10(lmbda),MSE(y_pred,y_test)]
+        df.loc[len(df.index)] = [rate,batch,np.log10(lmbda),np.log(MSE(y_pred,y_test)),eta_method]
 
     return df
 
-def make_sgd_pairplot(eta_method, x, y, n_features, n_iterations, n_predictions):
 
-    df = make_dataframe_sgd(x, y, eta_method, n_features = n_features,n_iterations = n_iterations, n_predictions = n_predictions)
-    g = sns.PairGrid(df,hue = "mse")
-    g.map_offdiag(sns.scatterplot)
-    
+def make_epoch_plot(x, y, n_iterations,n_features,lmbda,eta_method,n_batches,learning_rate):
 
-    g.add_legend()
-    g.fig.subplots_adjust(top=0.94)
-    g.fig.suptitle('Method =' + eta_method)
-    
-    plt.show()
-
-
-
-def sgd_figures(x, y, eta_method = 'basic', n_features = 3,n_iterations = 100):
-
+    iterations = np.arange(0,n_iterations,1)
     X = make_design_1D(x,n_features)
     X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
 
-    mse = np.zeros(n_iterations)
-    iterations = np.arange(0,n_iterations,1)
+    eta = make_adaptive_learner(eta_method,n_features,learning_rate)
+
     
-    learning_rates = np.array([10**i for i in range(-5,0)])
     theta_init = guess_initial_theta(X_train[1],y_train,n_features)
-    plt.subplot(221)
-    for learning_rate in learning_rates:
-        eta = make_adaptive_learner(eta_method,n_features,learning_rate)
-        theta0 = np.copy(theta_init)
-        thetas = gradient_descent(X_train, y_train, theta0, 0, n_iterations, eta, 1, 0)
-        for i in iterations:
+    thetas = gradient_descent(X_train, y_train, theta_init, lmbda, n_iterations, eta, n_batches, 0)
+    mses = np.empty(thetas.shape[0])
+    for i in iterations:
+        y_pred = X_test @ thetas[i]
+        mses[i] = MSE(y_test,y_pred)
 
-            y_pred = X_test @ thetas[i]
-            mse[i] = MSE(y_pred,y_test)
-
-        plt.plot(iterations,np.log(mse),label = 'Rate = %.0e' % (learning_rate))
-
-    plt.title('Comparison of learning rates')
-    plt.legend()
-
-
-    plt.subplot(222)
-    batches = np.arange(1,10,2)
-    learning_rate = 0.1
-    eta = make_adaptive_learner(eta_method,n_features,learning_rate)
-    for n_batches in batches:
-        theta0 = np.copy(theta_init)
-        thetas = gradient_descent(X_train, y_train, theta0, 0, n_iterations, eta, n_batches, 0)
-        for i in iterations:
-
-            y_pred = X_test @ thetas[i]
-            mse[i] = MSE(y_pred,y_test)
-
-        plt.plot(iterations,np.log(mse),label = '%d batches' % (n_batches))
-
-    plt.title('Comparison of numbers of batches')
-    plt.legend()
-
-    plt.subplot(223)
-    lmbdas = np.array([0] + [10**i for i in range(-5,0)])
-    learning_rate = 0.1
-    eta = make_adaptive_learner(eta_method,n_features,learning_rate)
-    for lmbda in lmbdas:
-        theta0 = np.copy(theta_init)
-        thetas = gradient_descent(X_train, y_train, theta0, lmbda, n_iterations, eta, 1, 0)
-        for i in iterations:
-
-            y_pred = X_test @ thetas[i]
-            mse[i] = MSE(y_pred,y_test)
-
-        plt.plot(iterations,np.log(mse),label = r'$\lambda$: %.0e' % (lmbda))
-
-    plt.title('Comparison of lambdas')
-    plt.legend()
-
-
-    plt.subplot(224)
-    batches = np.arange(1,10,2)
-    learning_rate = 0.1
-    lmbda = 0
-    eta_algos = ['basic','ada','rms','adam']
-    for algo in eta_algos:
-        eta = make_adaptive_learner(algo,n_features,learning_rate)
-        theta0 = np.copy(theta_init)
-        thetas = gradient_descent(X_train, y_train, theta0, 0, n_iterations, eta, n_batches, 0)
-        for i in iterations:
-
-            y_pred = X_test @ thetas[i]
-            mse[i] = MSE(y_pred,y_test)
-
-        plt.plot(iterations,np.log(mse),label = algo)
-
-    plt.title('Comparison of algorithms')
-    plt.legend()
+    plt.title("MSE over iterations with " + eta_method + " algorithm. (" + str(n_batches) + " minibatches)")
+    plt.xlabel("Epochs")
+    plt.ylabel("MSE")
+    plt.yscale("log")
+    plt.plot(iterations,mses)
     plt.show()
 
+
+
+def make_sgd_compare_plot(x, y, n_features, n_iterations, n_predictions):
+
+    df = make_dataframe_sgd(x, y, n_features = n_features,n_iterations = n_iterations, n_predictions = n_predictions, eta_algos = ['basic','ada','rms','adam'])
+    
+    
+    g = sns.pairplot(data=df, x_vars=['learning_rates', 'number_of_batches', 'lmbdas'], y_vars = ['mse'], hue='eta')
+    g.fig.subplots_adjust(top=0.96)
+    g.fig.suptitle('Mean squared error after ' + str(n_iterations))
+    plt.show()
+
+    df = df.drop(df[df['eta'] == 'ada'].index)
+    g = sns.pairplot(data=df, x_vars=['learning_rates', 'number_of_batches', 'lmbdas'], y_vars = ['mse'], hue='eta')
+    g.fig.subplots_adjust(top=0.96)
+    g.fig.suptitle('Mean squared error after ' + str(n_iterations))
+    plt.show()
