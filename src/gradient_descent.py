@@ -12,34 +12,37 @@ def momentum_descent(X, y, theta,lmbda,n_epochs, eta, momentum):
 def sgd(X, y, theta,lmbda,n_epochs, eta, m):
     return gradient_descent(X, y, theta,lmbda,n_epochs, eta, m, 0)
 
-def gradient_descent(X, y, theta,lmbda,n_epochs, eta, m, momentum):
+def sgd_one_epoch(X,y,rng,theta,n_batches,lmbda,momentum,eta,indices):
+    gradient = np.zeros((theta.shape))
+    indices = rng.permuted(indices)
+    for j in range(n_batches):
+        #Pick the k-th minibatch at random
+        k = rng.integers(0,n_batches)
+        batch_indices = indices[k]
+        X_b = X[batch_indices]
+        y_b = y[batch_indices]
+        g_b = find_gradient_ridge(X_b,y_b,theta,lmbda)
+        gradient += g_b
+
+    
+    return gradient
+
+def gradient_descent(X, y, theta,lmbda,n_epochs, eta, n_batches, momentum):
     """ Gradient descent with momentum """
 
     rng = default_rng()
     n = len(y)
-    M = int(n/m) # Size of minibatches
+    M = int(n/n_batches) # Size of minibatches
      
-    indices = np.arange(0,m*M,1).reshape((m,M))
+    indices = np.arange(0,n_batches*M,1).reshape((n_batches,M))
     v = np.zeros((theta.shape))
     thetas = np.zeros((n_epochs,theta.shape[0]))
     for i in range(n_epochs):
-        gradient = np.zeros((theta.shape))
-        indices = rng.permuted(indices)
-        for j in range(m):
-            #Pick the k-th minibatch at random
-            k = rng.integers(0,m)
-            batch_indices = indices[k]
-            X_b = X[batch_indices]
-            y_b = y[batch_indices]
-            g_b = find_gradient_ridge(X_b,y_b,theta,lmbda)
-            gradient += g_b
+        gradient = sgd_one_epoch(X,y,rng,theta,n_batches,lmbda,momentum,eta,indices)
 
-        v = eta.update(gradient/m) + momentum * v
+        v = eta.update(gradient/n_batches) + momentum * v
         theta += v
         thetas[i] = theta.ravel()
-        '''if abs(np.mean(v)) < condition:
-            print('Iterations SDG (momentum): ', iter)
-            break'''
     
     eta.reset()
     return thetas
@@ -49,11 +52,6 @@ def lin_reg(X,y):
     
     theta = np.linalg.inv(X.T @ X) @ X.T @ y
     return theta
-
-def find_gradient(X,y,theta):
-    """ Function for finding the gradient """
-    n = len(y)
-    return (2/n)*X.T @ (X @ theta-y)
 
 def find_gradient_ridge(X,y,theta,lamb):
     """ Function for finding the gradient """
