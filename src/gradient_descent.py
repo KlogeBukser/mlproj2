@@ -1,17 +1,10 @@
-# Importing various packages
-from random import random, seed
 import numpy as np
 from numpy.random import default_rng
-
-def simple_descent(X, y, theta,lmbda,n_epochs, eta):
-    return gradient_descent(X, y, theta,n_epochs, eta, len(y))
-
 
 def sgd_one_epoch(X,y,rng,theta,n_batches,lmbda,eta,indices):
     gradient = np.zeros((theta.shape))
     indices = rng.permuted(indices)
     for j in range(n_batches):
-        #Pick the k-th minibatch at random
         k = rng.integers(0,n_batches)
         batch_indices = indices[k]
         X_b = X[batch_indices]
