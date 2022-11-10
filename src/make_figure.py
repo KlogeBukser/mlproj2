@@ -16,7 +16,7 @@ def guess_initial_theta(x,y,n_features):
     theta_init[1] = (np.max(y)-np.min(y))/(np.max(x) - np.min(x))'''
     return theta_init
 
-def make_dataframe_sgd(x, y, n_features = 3,n_iterations = 100,n_predictions = 1000, eta_algos = ['basic','ada','rms','adam']):
+def make_dataframe_sgd(x, y, params, n_features = 3,n_iterations = 100,n_predictions = 200):
     X = make_design_1D(x,n_features)
     X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
 
@@ -26,19 +26,21 @@ def make_dataframe_sgd(x, y, n_features = 3,n_iterations = 100,n_predictions = 1
     data = {'learning_rates' : {}, 'number_of_batches' : {}, 'lmbdas' : {}, 'mse' : {}, 'eta' : {}}
     df = pd.DataFrame(data)
     theta_init = guess_initial_theta(X_train[1],y_train,n_features)
+    
 
     for i in range(n_predictions):
-        rate = rng.uniform(0.02,0.15)
+        rate, batch, lmbda, eta_method = params(rng)
+        '''rate = rng.uniform(0.02,0.2)
         batch = rng.integers(1,20)
         lmbda = 10**rng.uniform(-8,-1)
-        eta_method = rng.choice(eta_algos)
+        eta_method = rng.choice(eta_algos)'''
 
         eta = make_adaptive_learner(eta_method,n_features,rate)
         theta0 = np.copy(theta_init)
         theta = gradient_descent(X_train, y_train, theta0, lmbda, n_iterations, eta, batch)
         y_pred = X_test @ theta
 
-        df.loc[len(df.index)] = [rate,batch,np.log10(lmbda),np.log(MSE(y_pred,y_test)),eta_method]
+        df.loc[len(df.index)] = [rate,batch,np.log10(lmbda),MSE(y_pred,y_test),eta_method]
 
     return df
 
@@ -75,9 +77,9 @@ def make_epoch_plot(x, y, n_epochs,n_features,lmbda,eta_method,n_batches,learnin
 
 
 
-def make_sgd_compare_plot(x, y, n_features, n_iterations, n_predictions):
+def make_sgd_compare_plot(x, y, params, n_features, n_iterations, n_predictions):
 
-    df = make_dataframe_sgd(x, y, n_features = n_features,n_iterations = n_iterations, n_predictions = n_predictions, eta_algos = ['basic','ada','rms','adam'])
+    df = make_dataframe_sgd(x, y, params, n_features,n_iterations, n_predictions)
     
     
     g = sns.pairplot(data=df, x_vars=['learning_rates', 'number_of_batches', 'lmbdas'], y_vars = ['mse'], hue='eta')
@@ -85,8 +87,8 @@ def make_sgd_compare_plot(x, y, n_features, n_iterations, n_predictions):
     g.fig.suptitle('Mean squared error after ' + str(n_iterations) + ' iterations')
     plt.show()
 
-    df = df.drop(df[df['eta'] == 'ada'].index)
+    '''df = df.drop(df[df['eta'] == 'ada'].index)
     g = sns.pairplot(data=df, x_vars=['learning_rates', 'number_of_batches', 'lmbdas'], y_vars = ['mse'], hue='eta')
     g.fig.subplots_adjust(top=0.85)
     g.fig.suptitle('Mean squared error after ' + str(n_iterations) + ' iterations')
-    plt.show()
+    plt.show()'''
