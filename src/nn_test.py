@@ -6,8 +6,10 @@ import jax.numpy as jnp
 import seaborn as sns
 from nn import *
 from generate import gen_simple
+import matplotlib.pyplot as plt
 
 
+# np.random.seed(437)
 
 def basic_nn_pred(learning_rate, lmbd):
 	x,y = gen_simple(1000)
@@ -28,13 +30,20 @@ def basic_nn_pred(learning_rate, lmbd):
 	# print("y_train is",y_train.shape)
 
 	nn = NNRegressor(X_train,y_train, 2, np.array([50,50]), learning_rate, lmbd)
-	nn.train2()
+	nn.train()
 	pred = nn.predict(X_test)
-	# print(X_test)
-	# print(y_test)
-	print(pred)
-
+	# print("Xin", X_test)
+	# print("Yin", y_test)
+	# print(pred)
+ 
+	plt.scatter(X_test, y_test)
+	plt.scatter(X_test, pred)
+	plt.show()
 	# score = cal_accuracy(pred, test)
+
+
+
+
 
 def find_best_hyperparams(min_eta, max_eta, min_lmbd, max_lmbd):
 	# from adjust hyperparams
