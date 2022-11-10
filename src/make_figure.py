@@ -47,6 +47,8 @@ def make_sgd_pairplot(eta_method, x, y, n_features, n_iterations, n_predictions)
     
 
     g.add_legend()
+    g.fig.subplots_adjust(top=0.94)
+    g.fig.suptitle('Method =' + eta_method)
     
     plt.show()
 
