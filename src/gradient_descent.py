@@ -21,15 +21,15 @@ def sgd_one_epoch(X,y,rng,theta,n_batches,lmbda,eta,indices):
 
     return eta.update(gradient/n_batches)
 
+
 def gradient_descent(X, y, theta, lmbda, n_epochs, eta, n_batches):
     """ Gradient descent """
 
     rng = default_rng()
-    n = len(y)
-    M = int(n/n_batches) # Size of minibatches
+    n_datapoints = len(y)
+    batch_size = int(n_datapoints/n_batches)
      
-    indices = np.arange(0,n_batches*M,1).reshape((n_batches,M))
-    change = np.zeros((theta.shape))
+    indices = np.arange(0,n_batches*batch_size,1).reshape((n_batches,batch_size))
     thetas = np.zeros((n_epochs,theta.shape[0]))
     for i in range(n_epochs):
         change = sgd_one_epoch(X,y,rng,theta,n_batches,lmbda,eta,indices)
