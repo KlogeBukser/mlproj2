@@ -1,6 +1,5 @@
 import numpy as np
 from poly_funcs import get_1D_pols
-from learning_rates import *
 
 def make_design_1D(x,n_features):
     """ (From project 1 with some adjustments)
@@ -15,15 +14,6 @@ def make_design_1D(x,n_features):
 
     return design
 
-def make_adaptive_learner(eta_method = 'basic', n_features = 3, learning_rate = 0.01):
-    if eta_method == 'ada':
-        return ADA(n_features,learning_rate)
-    if eta_method == 'rms':
-        return RMSProp(n_features,learning_rate)
-    if eta_method == 'adam':
-        return ADAM(n_features,learning_rate)
-
-    return Basic_learning_rate(learning_rate)
 
 def R2(z_test,z_pred):
     """computes the mean squared error for a given prediction
