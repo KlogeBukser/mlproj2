@@ -1,7 +1,7 @@
 # activation_funcs.py
 from jax import grad,vjp
 import numpy as np
-
+import matplotlib.pyplot as plt
 # Sigmoid, the RELU and the Leaky RELU
 
 # jax.grad requires function to have float output, hence the 0.0's, allow_int=True doesn't work
@@ -115,4 +115,7 @@ def heaviside(x):
 
 # print(leaky_relu([1.2,-2.1],0.1))
 
-
+# a=np.arange(-10,10,0.01)
+# plt.plot(a, sigmoid(a))
+# plt.plot(a,sigmoid_grad(a))
+plt.show()

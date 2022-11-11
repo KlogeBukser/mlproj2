@@ -30,9 +30,7 @@ class NeuralNetwork:
 		self.X_data_full = X_data_full
 		self.layer_inputs = np.zeros(n_hidden_layers+1,dtype=object)# +1 for input to the output layer
 
-		print("Y_data_full", Y_data_full.shape)
 		self.Y_data_full = Y_data_full
-		print("Y_data_full", self.Y_data_full.shape)
 		self.n_hidden_layers = n_hidden_layers
 		self.n_nodes_in_layer = n_nodes_in_layer
 
@@ -91,6 +89,7 @@ class NeuralNetwork:
 
 		# print("output shape is", self.output.shape )
 		# print("data shape is", self.Y_data.shape)
+		print("out",self.output)
 
 
 	def feed_forward_out(self, X):
@@ -101,6 +100,7 @@ class NeuralNetwork:
 		for i in range(self.n_hidden_layers):
 			z = np.matmul(layer_inputs[i], self.weights[i]) + self.biases[i]
 			layer_inputs[i+1] = self.activation.func(z)
+
 
 		output = np.matmul(layer_inputs[-1], self.out_weights) + self.out_biases
 		print("out",output)
@@ -114,10 +114,17 @@ class NeuralNetwork:
 
 	def back_propagate(self):
 
+		# problematic
+
 		# out_err = (self.output - self.Y_data) * self.activation_out.gradient(self.layer_inputs[-1])
 		out_err = self.output - self.Y_data
 		hidden_errors = np.zeros(self.n_hidden_layers, dtype=object)
-		hidden_errors[-1] = np.matmul(out_err, self.out_weights.T) # * self.layer_inputs[i] * (1 - self.layer_inputs[i])
+		hidden_errors[-1] = np.matmul(out_err, self.out_weights.T) * self.activation.gradient(self.layer_inputs[-1]) # * self.layer_inputs[i] * (1 - self.layer_inputs[i])
+
+		# debug
+		# print("out err", out_err.T, "\n", out_err.shape)
+		# print("hidden err", hidden_errors)#,"\n", hidden_errors[-1].shape)
+		# print("weight", self.out_weights.T, "\n", self.out_weights.T.shape)
 
 		self.hidden_weights_gradients = np.zeros(self.n_hidden_layers, dtype=object)
 		self.hidden_bias_gradients = np.zeros(self.n_hidden_layers, dtype=object)
@@ -128,6 +135,7 @@ class NeuralNetwork:
 			hidden_errors[ind_curr] = np.matmul(hidden_errors[ind_curr+1], 
 				self.weights[ind_curr+1].T) * self.activation.gradient(
 				self.layer_inputs[ind_curr])
+
 
 		# update output gradients
 		self.out_weights_gradient = np.matmul(self.layer_inputs[-1].T, out_err)
