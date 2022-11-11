@@ -27,86 +27,31 @@ class ActivationFunction:
 	
 
 def sigmoid(x):
-	# print(x)
 	return 1/(1+np.exp(-x))
 
 def sigmoid_grad(x):
 	return sigmoid(x)*(1-sigmoid(x))
 
-
 def relu(x):
-	
-	if type(x) is int or type(x) is float:
-		if x > 0:
-			return x
-		return 0.0
+    return x * (x > 0)
 
-	result = np.zeros(len(x))
-	for i in range(len(x)):
-		if x[i] > 0:
-			result[i] = x[i]
+def relu_grad(x): 
+    return 1 * (x > 0)
 
-	return result
-
-def relu_grad(x):
-
-	if type(x) is int or type(x) is float:
-		if x > 0:
-			return 1
-		return 0.0
-
-	result = np.zeros(len(x))
-	for i in range(len(x)):
-		if x[i] > 0:
-			result[i] = 1
-
-	return result
 
 def leaky_relu(x, alpha):
 
-	if type(x) is int or type(x) is float:
-		if x > 0:
-			return x
-		return alpha*x
+	output = np.where(x > 0, x, x * alpha)
 
-	result = np.zeros(len(x))
-	for i in range(len(x)):
-		if x[i] > 0:
-			result[i] = x[i]
-		else:
-			result[i] = alpha*x[i]
-
-	return result
+	return output
 
 def leaky_relu_grad(x, alpha):
 
-	if type(x) is int or type(x) is float:
-		if x > 0:
-			return 1
-		return alpha
+	output = np.where(arr > 0, 1, 0.01)
 
-	result = np.zeros(len(x))
-	for i in range(len(x)):
-		if x[i] > 0:
-			result[i] = 1
-		else:
-			result[i] = alpha
-
-	return result
+	return output
 
 
-def heaviside(x):
-
-	if type(x) is int or type(x) is float:
-		if x > 0:
-			return 1.0
-		return 0.0
-
-	result = np.zeros(len(x))
-	if x > 0:
-		result[i] = 1.0
-	
-	return result
 
 # sig = ActivationFunction("sigmoid")
 # a = np.array([1.0,2.0,3.0,-1])
