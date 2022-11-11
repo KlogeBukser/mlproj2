@@ -1,94 +1,121 @@
-import matplotlib.pyplot as plt
+import os
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from numpy.random import default_rng
+import matplotlib.pyplot as plt
+from gradient_descent_iterators import *
+from misc import MSE, make_design_1D
 from sklearn.model_selection import train_test_split
 
-from gradient_descent import *
-from learning_rates import *
-from misc import *
+def save_figure(filename):
+    file_dir = os.path.dirname(os.path.abspath(__file__)) + "/plots"       # Finds the plot folder even when ran from outside src
+    full_path = os.path.join(file_dir, filename)
+    plt.savefig(full_path)
 
 
-def guess_initial_theta(x,y,n_features):
-    theta_init = np.ones((n_features, 1))
-    '''theta_init[0] = np.mean(y)
-    theta_init[1] = (np.max(y)-np.min(y))/(np.max(x) - np.min(x))'''
-    return theta_init
+def get_sgd_iterator(X, y, theta_init, learning_rate = 0.001, lmbda = 0, n_batches = 1, momentum = 0,algo = 'basic'):
 
-def make_dataframe_sgd(x, y, params, n_features = 3,n_iterations = 100,n_predictions = 200):
+    if algo == 'ada':
+        return ADA(X,y,theta_init,learning_rate, lmbda, n_batches, momentum)
+    if algo == 'rms':
+        return RMSProp(X,y,theta_init,learning_rate, lmbda, n_batches, momentum)
+    if algo == 'adam':
+        return ADAM(X,y,theta_init,learning_rate, lmbda, n_batches, momentum)
+
+    return Gradient_descent(X,y,theta_init,learning_rate, lmbda, n_batches, momentum)
+
+
+def momentum_plot(x,y,learning_rate,n_epochs,n_features,lmbda,n_batches = 1,momentums = np.arange(0,1,0.2),algo = 'basic',smooth = False):
+    """ Makes momentum plot for standard gradient descent algorithm. """
+
+    X = make_design_1D(x,n_features)
+    X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
+
+
+    # Arrays for plotting
+    epochs = np.arange(0,n_epochs,1)
+    mses = np.empty(n_epochs)
+
+    for momentum in momentums:
+        theta_init = np.ones((n_features, 1))
+        gd_iterator = get_sgd_iterator(X_train,y_train,theta_init,learning_rate,lmbda,n_batches,momentum,algo)
+        for epoch in epochs:
+            gd_iterator.advance()
+            y_pred = gd_iterator.predict(X_test,smooth)
+            mses[epoch] = MSE(y_pred,y_test)
+            
+        plt.plot(epochs,mses,label = "Momentum: %.2f" % (momentum))
+
+    plt.title(" Momentum ")
+    plt.yscale("log")
+    plt.xlabel("Epochs")
+    plt.ylabel("MSE")
+    plt.legend()
+    save_figure('momentum.png')
+    plt.close()
+
+def batches_plot(x,y,learning_rate,n_epochs,n_features,lmbda,n_batches_list = np.arange(1,20,3),momentum = 0, algo = 'basic', smooth = False):
+    """ Makes momentum plot for standard gradient descent algorithm. """
+
+    X = make_design_1D(x,n_features)
+    X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
+
+
+    # Arrays for plotting
+    epochs = np.arange(0,n_epochs,1)
+    mses = np.empty(n_epochs)
+
+    for n_batches in n_batches_list:
+        theta_init = np.ones((n_features, 1))
+        gd_iterator = get_sgd_iterator(X_train,y_train,theta_init,learning_rate,lmbda,n_batches,momentum,algo)
+        for epoch in epochs:
+            gd_iterator.advance()
+            y_pred = gd_iterator.predict(X_test,smooth)
+            mses[epoch] = MSE(y_pred,y_test)
+            
+        plt.plot(epochs,mses,label = "Number of batches: %d" % (n_batches))
+
+    plt.title(" Number of minibatches ")
+    plt.yscale("log")
+    plt.xlabel("Epochs")
+    plt.ylabel("MSE")
+    plt.legend()
+    save_figure('batches.png')
+    plt.close()
+
+
+
+
+def make_dataframe_sgd(x, y, params, n_features = 3,n_epochs = 100,n_predictions = 200):
+
     X = make_design_1D(x,n_features)
     X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
 
     rng = default_rng()
 
 
-    data = {'learning_rates' : {}, 'number_of_batches' : {}, 'lmbdas' : {}, 'mse' : {}, 'eta' : {}}
+    data = {'learning_rates' : {}, 'number_of_batches' : {}, 'lmbdas' : {}, 'mse' : {}, 'algorithm' : {}}
     df = pd.DataFrame(data)
-    theta_init = guess_initial_theta(X_train[1],y_train,n_features)
+    theta_init = np.ones((n_features, 1))
     
 
     for i in range(n_predictions):
-        rate, batch, lmbda, eta_method = params(rng)
-        '''rate = rng.uniform(0.02,0.2)
-        batch = rng.integers(1,20)
-        lmbda = 10**rng.uniform(-8,-1)
-        eta_method = rng.choice(eta_algos)'''
+        rate, batch, lmbda, algo = params(rng)
 
-        eta = make_adaptive_learner(eta_method,n_features,rate)
-        theta0 = np.copy(theta_init)
-        theta = gradient_descent(X_train, y_train, theta0, lmbda, n_iterations, eta, batch)
-        y_pred = X_test @ theta
-
-        df.loc[len(df.index)] = [rate,batch,np.log10(lmbda),MSE(y_pred,y_test),eta_method]
+        # X_train,y_train,theta_init,learning_rate,lmbda,n_batches,momentum,algo
+        iterator = get_sgd_iterator(X_train,y_train, theta_init, rate, lmbda, batch,momentum = 0, algo = algo)
+        iterator.advance(n_epochs)
+        y_pred = iterator.predict(X_test)
+        df.loc[len(df.index)] = [rate,batch,np.log10(lmbda),MSE(y_pred,y_test),algo]
 
     return df
 
 
-def make_epoch_plot(x, y, n_epochs,n_features,lmbda,eta_method,n_batches,learning_rate):
-
-    iterations = np.arange(0,n_epochs,1)
-    X = make_design_1D(x,n_features)
-    X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
-
-    eta = make_adaptive_learner(eta_method,n_features,learning_rate)
-
-    
-    rng = default_rng()
-    n_datapoints = len(y_train)
-    batch_size = int(n_datapoints/n_batches)
-     
-    indices = np.arange(0,n_batches*batch_size,1).reshape((n_batches,batch_size))
-    theta = guess_initial_theta(X_train[1],y_train,n_features)
-    mses = np.empty(n_epochs)
-    for i in range(n_epochs):
-        change = sgd_one_epoch(X_train,y_train,rng,theta,n_batches,lmbda,eta,indices)
-        theta += change
-        mses[i] = MSE(X_test @ theta, y_test)
-    eta.reset()
-
-
-    plt.title("MSE over iterations with " + eta_method + " algorithm. (" + str(n_batches) + " minibatches)")
-    plt.xlabel("Epochs")
-    plt.ylabel("MSE")
-    plt.yscale("log")
-    plt.plot(iterations,mses)
-    plt.show()
-
-
-
-def make_sgd_compare_plot(x, y, params, n_features, n_iterations, n_predictions):
+def make_sgd_compare_plot(x, y, params, n_features, n_iterations, n_predictions,filename):
 
     df = make_dataframe_sgd(x, y, params, n_features,n_iterations, n_predictions)
-    
-    
-    g = sns.pairplot(data=df, x_vars=['learning_rates', 'number_of_batches', 'lmbdas'], y_vars = ['mse'], hue='eta')
+    g = sns.pairplot(data=df, x_vars=['learning_rates', 'number_of_batches', 'lmbdas'], y_vars = ['mse'], hue='algorithm')
     g.fig.subplots_adjust(top=0.85)
     g.fig.suptitle('Mean squared error after ' + str(n_iterations) + ' iterations')
-    plt.show()
-
-    '''df = df.drop(df[df['eta'] == 'ada'].index)
-    g = sns.pairplot(data=df, x_vars=['learning_rates', 'number_of_batches', 'lmbdas'], y_vars = ['mse'], hue='eta')
-    g.fig.subplots_adjust(top=0.85)
-    g.fig.suptitle('Mean squared error after ' + str(n_iterations) + ' iterations')
-    plt.show()'''
+    save_figure(filename)
+    plt.close()
