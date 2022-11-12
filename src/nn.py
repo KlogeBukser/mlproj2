@@ -200,10 +200,19 @@ class NeuralNetwork:
 				self.feed_forward()
 				self.back_propagate() 
 
+				# protection against overflow
+				if self.score(self.X_data_full, self.Y_data_full) > 100:
+					self.create_biases_and_weights()
+
 				self.debugger.print_score(i*self.n_iter+j,self.n_epochs*self.n_iter)
 
+		training_score = self.score(self.X_data_full, self.Y_data_full)
+		if training_score > 0.01:
+			print("f'CONVERGENCE ERROR: Maximum iteration (" + str(self.n_epochs*self.n_iter) 
+				+ ") reached. Model has not converged, try increasing the number of iterations.")
+
 	def prep(self):
-		# no random shit
+		# prepare data to manual training
 
 		data_indices = np.arange(self.n_inputs)
 		chosen_datapoints = np.random.choice(
@@ -245,14 +254,15 @@ class NNRegressor(NeuralNetwork):
 
 	def predict(self,X):
 
+		# check convergences
+
 		return self.feed_forward_out(X)
 
-	def score(self, X_test, Y_test):
+	def score(self, X, Y):
 		'''Evaluation of model'''
-		Y_pred = self.predict(X_test)
-		return MSE(Y_test, Y_pred)
+		Y_pred = self.predict(X)
+		return MSE(Y, Y_pred)
 
-	
 
 class NNClassifier(NeuralNetwork):
 	"""docstring for Classifier"""
