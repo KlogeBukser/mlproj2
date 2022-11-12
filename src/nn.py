@@ -1,14 +1,11 @@
-from jax import numpy as jnp
 import numpy as np
 from activation_funcs import ActivationFunction
-from gradient_descent import *
-from misc import MSE, MSE_prime
-from jax import grad
-from NNDebugger import *
 
-# test use
-from sklearn.model_selection import train_test_split
+from gradient_descent import *
 from generate import gen_simple
+from misc import MSE, MSE_prime
+from NNDebugger import *
+from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
 # print(np.random.randn(2,3))	
