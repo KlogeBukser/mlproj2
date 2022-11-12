@@ -1,7 +1,6 @@
 import numpy as np
 from activation_funcs import ActivationFunction
 
-from gradient_descent import *
 from generate import gen_simple
 from misc import MSE, MSE_prime
 from NNDebugger import *
