@@ -49,6 +49,8 @@ def MSE(z_test, z_pred):
 
     return np.mean((z_test - z_pred)**2)
 
+def MSE_prime(y_true, y_pred):
+    return 2*(y_pred-y_true)/y_true.size;
 
 def cal_bias(z_test, z_pred):
     """computes the bias for a given prediction
