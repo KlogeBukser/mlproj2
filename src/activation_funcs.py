@@ -1,5 +1,4 @@
 # activation_funcs.py
-from jax import grad,vjp
 import numpy as np
 import matplotlib.pyplot as plt
 # Sigmoid, the RELU and the Leaky RELU

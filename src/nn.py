@@ -1,9 +1,6 @@
-from jax import numpy as jnp
 import numpy as np
 from activation_funcs import ActivationFunction
-from gradient_descent import *
 from misc import MSE
-from jax import grad
 
 # print(np.random.randn(2,3))	
 

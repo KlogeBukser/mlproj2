@@ -2,7 +2,6 @@
 from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
-import jax.numpy as jnp
 import seaborn as sns
 from nn import *
 from generate import gen_simple
