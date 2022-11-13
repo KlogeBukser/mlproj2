@@ -5,6 +5,8 @@ from sklearn.neural_network import MLPClassifier,MLPRegressor
 import matplotlib.pyplot as plt
 import seaborn as sns
 import warnings
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import ConfusionMatrixDisplay
 
 from nn import *
 from generate import *
@@ -115,13 +117,13 @@ def run_classification():
 
 	X_train, X_test, y_train, y_test = cancer()
 
-	my_classification(X_train, X_test, y_train, y_test)
+	# my_classification(X_train, X_test, y_train, y_test)
 	# sk_classification(X_train, X_test, y_train, y_test)
 
 	cancer_results = []
 	for i in range(1):
-		cancer_results.append(sk_classification(X_train, X_test, y_train, y_test))
-	print(cancer_results)
+		sk_classification(X_train, X_test, y_train, y_test)
+	# print(cancer_results)
 
 # ====================================Function Calls Starting Here==============================================
 
@@ -153,10 +155,16 @@ def sk_classification(X_train, X_test, y_train, y_test):
 	#print(predictions)
 	#print(y_test)
 	counter = 0
-	for x in range(len(predictions)):
-	    if predictions[x] != y_test[x]:
-	    	counter += 1
-	return ((len(predictions)-counter)/len(predictions))
+	clf = MLPClassifier()
+	clf.fit(X_train, y_train)
+
+	predictions = clf.predict(X_test)
+	  #print(predictions)
+	  #print(y_test)
+	cm = confusion_matrix(y_test, predictions, labels=clf.classes_)
+	disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=clf.classes_)
+	disp.plot()
+	plt.show()
 
 	
 
@@ -165,11 +173,11 @@ warnings.filterwarnings("ignore" )
 
 # regression
 activations = ["sigmoid", "relu", "tanh"] #, "leaky_relu"]
-run_regression("linear")
+# run_regression("linear")
 
 
 # classification
-# run_classification()
+run_classification()
 
 # MAX_STEP = 10
 # X_train, X_test, y_train, y_test = cancer()
