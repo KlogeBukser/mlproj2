@@ -14,6 +14,6 @@ if not os.path.exists(plot_path):
     os.mkdir(plot_path)
 
 
-#simple_plots()
-#comparison_plots()
+simple_plots()
+comparison_plots()
 logistic_reg()

@@ -29,7 +29,7 @@ def logistic_reg():
     epochs = np.arange(0,n_epochs,1)
 
     for rate in [1e-6,1e-5,1e-4]:
-        iterator = Gradient_descent(X_train,y_train,np.copy(theta_init),learning_rate = rate, lmbda = 0, n_batches = 10, momentum = 0,logistic = True)    
+        iterator = ADAM(X_train,y_train,np.copy(theta_init),learning_rate = rate, lmbda = 0, n_batches = 10, momentum = 0,logistic = True)    
         scores = np.empty(n_epochs)
         for i in epochs:
             iterator.advance()

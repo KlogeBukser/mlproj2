@@ -38,15 +38,15 @@ class Basic_grad:
     def find_gradient_logistic(self):
         t = self.X @ self.theta
         self.p = np.divide(1,1 + np.exp(-t))
-        return 2*((1/self.n_datapoints)*self.X.T @ (self.p-self.y) + self.lmbda*self.theta)
+        self.gradient = 2*((1/self.n_datapoints)*self.X.T @ (self.p-self.y) + self.lmbda*self.theta)
 
     
     def find_gradient_linear(self):
-        return 2*((1/self.n_datapoints)*self.X.T @ (self.X @ self.theta-self.y) + self.lmbda*self.theta)
+        self.gradient = 2*((1/self.n_datapoints)*self.X.T @ (self.X @ self.theta-self.y) + self.lmbda*self.theta)
 
     def update(self):
-        gradient = self.find_gradient()
-        self.change = -self.learning_rate*gradient
+        self.find_gradient()
+        self.change = -self.learning_rate*self.gradient
         self.theta += self.change
 
     def advance(self,n_epochs = 1):
@@ -108,8 +108,8 @@ class Gradient_descent(Basic_sgd):
         self.momentum = momentum
 
     def update(self):
-        gradient = self.find_gradient()
-        self.change = -(self.learning_rate*gradient + self.change*self.momentum)
+        self.find_gradient()
+        self.change = -(self.learning_rate*self.gradient + self.change*self.momentum)
         self.theta += self.change
 
 
@@ -120,9 +120,9 @@ class ADA(Gradient_descent):
         self.delta = delta                                  # Small constant to avoid rounding errors/division by zero
 
     def update(self):
-        gradient = self.find_gradient()
-        self.r += np.square(gradient)
-        self.change = -(np.multiply(self.learning_rate/(self.delta + np.sqrt(self.r)),gradient) + self.change*self.momentum)
+        self.find_gradient()
+        self.r += np.square(self.gradient)
+        self.change = -(np.multiply(self.learning_rate/(self.delta + np.sqrt(self.r)),self.gradient) + self.change*self.momentum)
         self.theta += self.change
 
     def reset(self):
@@ -137,9 +137,9 @@ class RMSProp(ADA):
         self.rho = rho                  # Decay rate of second order momentum
 
     def update(self):
-        gradient = self.find_gradient()
-        self.r = self.rho*self.r + (1-self.rho)*np.square(gradient)
-        self.change = -np.multiply(self.learning_rate/(np.sqrt(self.r + self.delta)),gradient)
+        self.find_gradient()
+        self.r = self.rho*self.r + (1-self.rho)*np.square(self.gradient)
+        self.change = -np.multiply(self.learning_rate/(np.sqrt(self.r + self.delta)),self.gradient)
         self.theta += self.change
 
 
@@ -151,10 +151,10 @@ class ADAM(ADA):
         self.rho2 = rho2                  # Decay rate of second order momentum
 
     def update(self):
-        gradient = self.find_gradient()
+        self.find_gradient()
         self.t += 1
-        self.s = self.rho1*self.s + (1-self.rho1)*gradient
-        self.r = self.rho2*self.r + (1-self.rho2)*np.square(gradient)
+        self.s = self.rho1*self.s + (1-self.rho1)*self.gradient
+        self.r = self.rho2*self.r + (1-self.rho2)*np.square(self.gradient)
         s_scaled = self.s/(1-self.rho1**self.t)
         r_scaled = self.r/(1-self.rho2**self.t)
         
