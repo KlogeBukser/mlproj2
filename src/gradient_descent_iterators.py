@@ -9,7 +9,7 @@ Classes for storing and updating hyperparameters for (stochastic) gradient desce
 
 class Basic_grad:
     """ Basic gradient descent with constant learning rate """
-    def __init__(self,X,y,theta_init,learning_rate,lmbda):
+    def __init__(self,X,y,theta_init,learning_rate,lmbda,logistic = False):
         self.learning_rate = learning_rate    # Initial learning rate
         self.lmbda = lmbda
         self.X = X
@@ -18,7 +18,23 @@ class Basic_grad:
         self.n_datapoints = len(y)
         self.reset()
 
-    def find_gradient(self):
+        if logistic:
+            self.find_gradient = self.find_gradient_logistic
+            self.predict = self.predict_logistic
+        else:
+            self.find_gradient = self.find_gradient_linear
+            self.predict = self.predict_linear
+
+    def predict_logistic(self,X_test):
+        return np.sign(self.predict_linear(X_test))
+
+    def find_gradient_logistic(self):
+        t = self.X @ self.theta
+        self.p = np.divide(1,1 + np.exp(-t))
+        return 2*((1/self.n_datapoints)*self.X.T @ (self.p-self.y) + self.lmbda*self.theta)
+
+    
+    def find_gradient_linear(self):
         return 2*((1/self.n_datapoints)*self.X.T @ (self.X @ self.theta-self.y) + self.lmbda*self.theta)
 
     def update(self):
@@ -30,7 +46,7 @@ class Basic_grad:
         for epoch in range(n_epochs):
             self.update()
 
-    def predict(self,X_test,smooth = False):
+    def predict_linear(self,X_test,smooth = False):
         ''' "Smooth = True" makes results for RMSProp easier to read, it does not make much difference in other algos '''
         if smooth:
             return X_test @ (self.theta - 0.5*self.change)
@@ -43,9 +59,9 @@ class Basic_grad:
 
 
 class Momentum_grad(Basic_grad):
-    def __init__(self,X,y,theta_init,learning_rate,lmbda,momentum):
+    def __init__(self,X,y,theta_init,learning_rate,lmbda,momentum,logistic = False):
         self.momentum = momentum
-        super().__init__(X,y,theta_init,learning_rate,lmbda)
+        super().__init__(X,y,theta_init,learning_rate,lmbda,logistic)
 
     def update(self):
         gradient = self.find_gradient()
@@ -55,8 +71,8 @@ class Momentum_grad(Basic_grad):
 
 
 class Basic_sgd(Basic_grad):
-    def __init__(self,X,y,theta_init,learning_rate,lmbda,n_batches):
-        super().__init__(X,y,theta_init,learning_rate,lmbda)
+    def __init__(self,X,y,theta_init,learning_rate,lmbda,n_batches,logistic = False):
+        super().__init__(X,y,theta_init,learning_rate,lmbda,logistic)
         self.rng = default_rng()
         self.n_batches = n_batches
         self.batch_size = int(self.n_datapoints/self.n_batches)
@@ -85,8 +101,8 @@ class Gradient_descent(Basic_sgd):
     Stochastic gradient descent
     This is the base class for the algorithms ADA, RMSProp, ADAM
     """
-    def __init__(self,X,y,theta_init,learning_rate = 0.001, lmbda = 0, n_batches = 1, momentum = 0):
-        super().__init__(X,y,theta_init,learning_rate,lmbda,n_batches)
+    def __init__(self,X,y,theta_init,learning_rate = 0.001, lmbda = 0, n_batches = 1, momentum = 0,logistic = False):
+        super().__init__(X,y,theta_init,learning_rate,lmbda,n_batches,logistic)
         self.momentum = momentum
 
     def update(self):
@@ -97,8 +113,8 @@ class Gradient_descent(Basic_sgd):
 
 class ADA(Gradient_descent):
     """ Adagrad method for tuning the learning rate """
-    def __init__(self, X, y, theta_init, learning_rate = 0.001, lmbda = 0, n_batches = 1, momentum = 0, delta = 1e-7):
-        super().__init__(X,y,theta_init,learning_rate,lmbda,n_batches,momentum)
+    def __init__(self, X, y, theta_init, learning_rate = 0.001, lmbda = 0, n_batches = 1, momentum = 0, delta = 1e-7,logistic = False):
+        super().__init__(X,y,theta_init,learning_rate,lmbda,n_batches,momentum,logistic)
         self.delta = delta                                  # Small constant to avoid rounding errors/division by zero
 
     def update(self):
@@ -114,8 +130,8 @@ class ADA(Gradient_descent):
 
 class RMSProp(ADA):
     """ RMSProp method for tuning the learning rate """
-    def __init__(self, X, y, theta_init, learning_rate = 0.001, lmbda = 0, n_batches = 1, momentum = 0, delta = 1e-6,rho = 0.9):
-        super().__init__(X,y,theta_init,learning_rate,lmbda,n_batches,momentum,delta)
+    def __init__(self, X, y, theta_init, learning_rate = 0.001, lmbda = 0, n_batches = 1, momentum = 0, delta = 1e-6,rho = 0.9,logistic = False):
+        super().__init__(X,y,theta_init,learning_rate,lmbda,n_batches,momentum,delta,logistic)
         self.rho = rho                  # Decay rate of second order momentum
 
     def update(self):
@@ -127,8 +143,8 @@ class RMSProp(ADA):
 
 class ADAM(ADA):
     """ ADAM method for tuning the learning rate """
-    def __init__(self, X, y, theta_init, learning_rate = 0.001, lmbda = 0, n_batches = 1, momentum = 0, delta = 1e-8, rho1 = 0.9, rho2 = 0.999):
-        super().__init__(X,y,theta_init,learning_rate,lmbda,n_batches,momentum, delta)
+    def __init__(self, X, y, theta_init, learning_rate = 0.001, lmbda = 0, n_batches = 1, momentum = 0, delta = 1e-8, rho1 = 0.9, rho2 = 0.999,logistic = False):
+        super().__init__(X,y,theta_init,learning_rate,lmbda,n_batches,momentum, delta,logistic)
         self.rho1 = rho1                  # Decay rate of second order momentum
         self.rho2 = rho2                  # Decay rate of second order momentum
 
