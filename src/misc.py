@@ -63,6 +63,5 @@ def cal_variance(z_pred):
     return np.mean( np.var(z_pred, axis=1, keepdims=True) )
 
 def logistic_grad(t, a):
-    print(a)
     return (a-t)/a*(1-a)
 

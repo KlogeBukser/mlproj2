@@ -165,7 +165,7 @@ warnings.filterwarnings("ignore" )
 
 # regression
 activations = ["sigmoid", "relu", "tanh"] #, "leaky_relu"]
-# run_regression("linear")
+run_regression("linear")
 
 
 # classification
