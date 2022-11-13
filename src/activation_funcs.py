@@ -25,6 +25,9 @@ class ActivationFunction:
 			self.func = linear
 			self.gradient = linear_grad
 
+		elif func_name == "tanh":
+			self.func = np.tanh
+			self.gradient = tanh_grad
 		else:
 			raise Exception("No matching function for name" + func_name)
 	
@@ -36,7 +39,7 @@ def sigmoid_grad(x):
 	return sigmoid(x)*(1-sigmoid(x))
 
 def relu(x):
-	return np.maximum(X, 0, out=X)
+	return np.maximum(x, 0, out=x)
     
 def relu_grad(x): 
     return 1 * (x > 0)
@@ -56,10 +59,11 @@ def leaky_relu_grad(x, alpha=0.01):
 def linear(x):
 	return x
 
-
 def linear_grad(x):
 	return np.ones(x.shape)
 
+def tanh_grad(x):
+	return 1 - (np.tanh(x))**2
 
 # sig = ActivationFunction("sigmoid")
 # a = np.array([1.0,2.0,3.0,-1])

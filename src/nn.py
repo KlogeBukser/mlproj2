@@ -2,7 +2,7 @@ import numpy as np
 from activation_funcs import ActivationFunction
 
 from generate import gen_simple
-from misc import MSE, MSE_prime
+from misc import MSE, MSE_prime, R2, logistic_grad
 from NNDebugger import *
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
@@ -30,6 +30,7 @@ class NeuralNetwork:
 			lmbd=0.01,
 			activation="leaky_relu",
 			activation_out="linear",
+			is_classifier=False,
 			is_debug=False
 			):
 
@@ -57,14 +58,15 @@ class NeuralNetwork:
 		self.activation = ActivationFunction(activation)
 		self.activation_out = ActivationFunction(activation_out)
 
+		self.is_classifier = is_classifier
+
 		self.create_biases_and_weights()
 
 
 		# debug
-		self.debugger = NNDebugger(self, is_debug)
+		self.debugger = NNDebugger(self, is_debug, activation, activation_out)
 
-		
-
+		self.debugger.print_static()
 
 	# structural methods below
 
@@ -96,18 +98,14 @@ class NeuralNetwork:
 
 		for i in range(1,self.n_hidden_layers):
 			# looping thru each layer updating all nodes
-			# print(i)
-			# print(self.layer_as[i].shape)
-			# print(self.weights[i].shape)
+
 			self.layer_zs[i] = np.matmul(self.layer_as[i-1], self.weights[i]) + self.biases[i]
 			self.layer_as[i] = self.activation.func(self.layer_zs[i])
-			# print(self.layer_as[i+1].shape)
 
 		self.layer_zs[-1] = np.matmul(self.layer_as[-2], self.weights[-1]) + self.biases[-1]
 		self.layer_as[-1] = self.activation_out.func(self.layer_zs[-1])
-		# print("output shape is", self.output.shape )
-		# print("data shape is", self.Y_data.shape)
-		# print("out",np.mean(self.output.T))
+		
+		# self.debugger.print_ff()
 
 
 	def feed_forward_out(self, X):
@@ -118,7 +116,7 @@ class NeuralNetwork:
 		layer_zs[0] = np.matmul(X, self.weights[0]) + self.biases[0]
 		layer_as[0] = self.activation.func(layer_zs[0])
 
-		for i in range(1,self.n_hidden_layers+1):
+		for i in range(1,self.n_hidden_layers):
 			# looping thru each layer updating all nodes
 			# print(i)
 			# print(self.layer_as[i].shape)
@@ -126,23 +124,13 @@ class NeuralNetwork:
 			layer_zs[i] = np.matmul(layer_as[i-1], self.weights[i]) + self.biases[i]
 			layer_as[i] = self.activation.func(layer_zs[i])
 
-		# layer_inputs = np.zeros(self.n_hidden_layers+1, dtype=object)
-		# layer_inputs[0] = X
 
-		# for i in range(self.n_hidden_layers):
-		# 	z = np.matmul(layer_inputs[i], self.weights[i]) + self.biases[i]
-		# 	layer_inputs[i+1] = self.activation.func(z)
+		layer_zs[-1] = np.matmul(layer_as[-2], self.weights[-1]) + self.biases[-1]
+		layer_as[-1] = self.activation_out.func(layer_zs[-1])
 
-
-		# output = np.matmul(layer_inputs[-1], self.weights[-1]) + self.biases[-1]
 		# print("out",output)
 
-		return layer_zs[-1] 
-
-
-	def cost(self): # square cost function
-		# never actually used, just to show
-		return 0.5*(self.output-self.Y_data)**2
+		return layer_as[-1] 
 
 	def back_propagate(self):
 		# initialise
@@ -151,43 +139,46 @@ class NeuralNetwork:
 		self.dbs = np.zeros(self.n_hidden_layers+1, dtype=object)
 
 		# output layer
-		self.errors[-1] = MSE_prime(self.Y_data, self.layer_as[-1])
-		# self.errors[-1] = MSE_prime(self.layer_as[-1],self.Y_data) * self.activation.gradient(self.layer_as[-1])
+		self.errors[-1] = self.cost_grad(self.Y_data, self.layer_as[-1])
 		# print(self.errors[-1].shape)
-		# print(self.layer_as[-2].shape)
+		# print(self.layer_as[-1].shape)
 		self.dws[-1] = np.matmul(self.layer_as[-2].T, self.errors[-1])
 		self.dbs[-1] = np.sum(self.errors[-1], axis=0)
-		if self.lmbd > 0:
-			self.dws[-1] += self.lmbd * self.weights[-1]
+		
 
 		for i in range(self.n_hidden_layers-1, -1, -1):
-			# delta = np.dot(self.weights[-l+1].transpose(), delta) * sp
-			# nabla_b[-l] = delta
-			# nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())
 
-			# print(self.errors[i+1].shape)
-			# print(self.weights[i+1].T.shape)
-			self.errors[i] = np.matmul(self.errors[i+1], self.weights[i+1].T) * self.activation.gradient(self.layer_zs[i])
+			# print("here", self.errors[i+1].shape, self.weights[i+1].T.shape)
+			self.errors[i] = np.matmul(self.errors[i+1], self.weights[i+1].T) * self.activation.gradient(self.layer_as[i])
+
+
+		self.dws[0] = np.matmul(self.input.T, self.errors[0])
+		self.dbs[0] = np.sum(self.errors[0], axis=0)
+
+		for i in range(1, self.n_hidden_layers):
 			self.dws[i] = np.matmul(self.layer_as[i-1].T, self.errors[i])
-
 			self.dbs[i] = np.sum(self.errors[i], axis=0)
 
-			if self.lmbd > 0:
+
+		if self.lmbd > 0:
+			for i in range(self.n_hidden_layers+1):
 				self.dws[i] += self.lmbd * self.weights[i]
 
-		# print("dws",self.dws[-1].shape)
-
-		# print(self.weights.shape == self.dws.shape)
 		self.weights -= self.learning_rate * self.dws
 		self.biases -= self.learning_rate * self.dbs
 
-
+		self.debugger.print_bp()
 
 	def train(self):
 		data_indices = np.arange(self.n_inputs)
 
 		for i in range(self.n_epochs):
 			for j in range(self.n_iter):
+
+				# for debugging
+				curr_step = i*self.n_iter+j
+				steps = self.n_epochs*self.n_iter
+
 				# pick datapoints with replacement
 				chosen_datapoints = np.random.choice(
 					data_indices, size=self.batch_size, replace=False
@@ -197,8 +188,11 @@ class NeuralNetwork:
 				self.input = self.X_data_full[chosen_datapoints]
 				self.Y_data = self.Y_data_full[chosen_datapoints]
 
+
 				self.feed_forward()
+				# self.debugger.print_ff(curr_step, steps)
 				self.back_propagate() 
+				# self.debugger.print_bp(curr_step, steps)
 
 				# protection against overflow
 				if self.score(self.X_data_full, self.Y_data_full) > 100:
@@ -207,9 +201,10 @@ class NeuralNetwork:
 				self.debugger.print_score(i*self.n_iter+j,self.n_epochs*self.n_iter)
 
 		training_score = self.score(self.X_data_full, self.Y_data_full)
-		if training_score > 0.01:
-			print("f'CONVERGENCE ERROR: Maximum iteration (" + str(self.n_epochs*self.n_iter) 
-				+ ") reached. Model has not converged, try increasing the number of iterations.")
+		if not self.is_classifier:
+			if training_score > 0.5:
+				print("f'CONVERGENCE ERROR: Maximum iteration (" + str(self.n_epochs*self.n_iter) 
+					+ ") reached. Model has not converged, try increasing the number of iterations.")
 
 	def prep(self):
 		# prepare data to manual training
@@ -220,6 +215,8 @@ class NeuralNetwork:
 
 		self.input = self.X_data_full[chosen_datapoints]
 		self.Y_data = self.Y_data_full[chosen_datapoints]
+
+		
 
 
 	# Evaluation
@@ -245,6 +242,7 @@ class NNRegressor(NeuralNetwork):
 			lmbd=lmbd,
 			activation=activation, 
 			activation_out=activation_out,is_debug=is_debug)
+		self.cost_grad = MSE_prime
 
 
 	def __repr__(self):
@@ -252,11 +250,17 @@ class NNRegressor(NeuralNetwork):
 		# architecture
 		return "NNRegressor: {}".format(str(self.n_nodes_in_layer))
 
+
 	def predict(self,X):
 
 		# check convergences
 
 		return self.feed_forward_out(X)
+
+	def R2(self,X,Y):
+		Y_pred = self.predict(X)
+		return R2(Y,Y_pred)
+
 
 	def score(self, X, Y):
 		'''Evaluation of model'''
@@ -265,24 +269,31 @@ class NNRegressor(NeuralNetwork):
 
 
 class NNClassifier(NeuralNetwork):
-	"""docstring for Classifier"""
+	"""Neural Network for classification problems"""
 	def __init__(self, 
 			X_data_full, 
-			Y_data,  
+			Y_data_full,  
 			n_hidden_layers, 
 			n_nodes, 
 			n_catagories,
-			acti_func_out="sigmoid",
+			activation="sigmoid",
+			activation_out="sigmoid",
 			n_epochs=10, 
 			batch_size=100, 
 			learning_rate=0.01, 
 			lmbd=0.0,
+			is_debug=False
 			):
-		super(NNClassifier, self).__init__(X_data_full, Y_data, n_hidden_layers, n_nodes,
-			n_epochs, batch_size, learning_rate, lmbd)
-		self.n_catagories = n_catagories
-		self.out_biases = np.zeros(self.n_catagories) + 0.01
-		self.activation_out = ActivationFunction(acti_func_out)
+
+		super(NNClassifier, self).__init__(X_data_full, Y_data_full, 
+			n_hidden_layers=n_hidden_layers, n_nodes_in_layer=n_nodes, n_catagories=n_catagories,
+			n_epochs=n_epochs, batch_size=batch_size,
+			activation=activation, activation_out=activation_out, 
+			learning_rate=learning_rate, lmbd=lmbd, 
+			is_classifier=True,
+			is_debug=is_debug)
+
+		self.cost_grad = logistic_grad
 
 	def __repr__(self):
 		# construct and return a string that represents the network
@@ -292,12 +303,15 @@ class NNClassifier(NeuralNetwork):
 	def predict(self,X):
 
 		probabilities = self.feed_forward_out(X)
-		return np.argmax(probabilities, axis=1)
+		# print(probabilities.T)
+		return np.where(probabilities > 0.5, 1, 0)
 
 	def score(self, X_test, Y_test):
 		'''Evaluation of model'''
 		Y_pred = self.predict(X_test)
+		# print(Y_pred)
 		return np.sum(Y_pred == Y_test) / len(Y_test)
+
 
 
 
