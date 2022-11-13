@@ -28,15 +28,15 @@ def logistic_reg():
     n_epochs = 200
     epochs = np.arange(0,n_epochs,1)
 
+    for rate in [1e-6,1e-5,1e-4]:
+        iterator = Gradient_descent(X_train,y_train,np.copy(theta_init),learning_rate = rate, lmbda = 0, n_batches = 10, momentum = 0,logistic = True)    
+        scores = np.empty(n_epochs)
+        for i in epochs:
+            iterator.advance()
+            prediction = iterator.predict(X_test)
+            scores[i] = accuracy_score(y_test,prediction)
 
-    iterator = Gradient_descent(X_train,y_train,np.copy(theta_init),learning_rate = 1e-6, lmbda = 0, n_batches = 10, momentum = 0,logistic = True)    
-    scores = np.empty(n_epochs)
-    for i in epochs:
-        iterator.advance()
-        prediction = iterator.predict(X_test)
-        scores[i] = accuracy_score(y_test,prediction)
-
-    plt.title('Accuracy score')
-    plt.plot(epochs,scores,label = 'Accuracy')
+        plt.title('Accuracy score')
+        plt.plot(epochs,scores,label = 'Rate: %.2e' % (rate))
     plt.legend()
     plt.show()

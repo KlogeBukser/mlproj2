@@ -25,8 +25,15 @@ class Basic_grad:
             self.find_gradient = self.find_gradient_linear
             self.predict = self.predict_linear
 
-    def predict_logistic(self,X_test):
-        return np.sign(self.predict_linear(X_test))
+    def predict_logistic(self,X_test,smooth = False):
+        return np.sign(self.predict_linear(X_test,smooth))
+
+    def predict_linear(self,X_test,smooth = False):
+        ''' "Smooth = True" makes results for RMSProp easier to read, it does not make much difference in other algos '''
+        if smooth:
+            return X_test @ (self.theta - 0.5*self.change)
+
+        return X_test @ self.theta
 
     def find_gradient_logistic(self):
         t = self.X @ self.theta
@@ -46,12 +53,7 @@ class Basic_grad:
         for epoch in range(n_epochs):
             self.update()
 
-    def predict_linear(self,X_test,smooth = False):
-        ''' "Smooth = True" makes results for RMSProp easier to read, it does not make much difference in other algos '''
-        if smooth:
-            return X_test @ (self.theta - 0.5*self.change)
-
-        return X_test @ self.theta
+    
 
     def reset(self):
         self.theta = self.theta_init
