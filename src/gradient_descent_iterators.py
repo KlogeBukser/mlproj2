@@ -14,7 +14,7 @@ class Basic_grad:
         self.lmbda = lmbda
         self.X = X
         self.y = y
-        self.theta_init = theta_init
+        self.theta_init = np.copy(theta_init)
         self.n_datapoints = len(y)
         self.reset()
 
