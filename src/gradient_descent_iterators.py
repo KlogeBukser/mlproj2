@@ -49,10 +49,12 @@ class Basic_grad:
         self.change = -self.learning_rate*self.gradient
         self.theta += self.change
 
-    def advance(self,n_epochs = 1):
+    def advance(self,n_epochs = 1,stop_crit = 0):
         for epoch in range(n_epochs):
             self.update()
-
+            if abs(np.mean(self.gradient)) < stop_crit:
+                break
+        return epoch
     
 
     def reset(self):
