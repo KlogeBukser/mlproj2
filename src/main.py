@@ -1,8 +1,6 @@
-from generate import gen_simple
 import numpy as np
 from numpy.random import default_rng
 from make_figure import *
-from hyperparams import Hyperparams
 from logistic import logistic_reg
 
 rng = default_rng(seed = 5473)

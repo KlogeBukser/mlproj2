@@ -1,5 +1,15 @@
 import numpy as np
 
+def simple_poly(n_points, coeffs = [3,4], noise_scale = 0.5):
+    """ Generates data for one variable polynomial """
+
+    rng = np.random.default_rng()
+    x = np.linspace([0],[2],n_points)
+    n_vars = len(coeffs)
+    noise = noise_scale*rng.normal(0,1,(n_points,1))
+    y = sum([coeffs[i]*x**i for i in range(n_vars)]) + noise
+
+    return x,y
 
 def gen_simple(n_points, is_noiseless=False):
     rng = np.random.default_rng()
