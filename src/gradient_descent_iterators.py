@@ -52,7 +52,7 @@ class Basic_grad:
     def advance(self,n_epochs = 1,stop_crit = 0.0):
         for epoch in range(n_epochs):
             self.update()
-            if abs(np.mean(self.gradient)) < stop_crit:
+            if np.mean(abs(self.gradient)) < stop_crit:
                 break
         return epoch
     
@@ -68,11 +68,14 @@ class Momentum_grad(Basic_grad):
         super().__init__(X,y,theta_init,learning_rate,lmbda,logistic)
 
     def update(self):
-        gradient = self.find_gradient()
-        self.change = -(self.learning_rate*self.gradient + self.change*self.momentum)
+        self.find_gradient()
+        self.v = self.momentum*self.v + self.learning_rate*self.gradient
+        self.change = -self.v
         self.theta += self.change
 
-
+    def reset(self):
+        super().reset()
+        self.v = 0
 
 class Basic_sgd(Basic_grad):
     def __init__(self,X,y,theta_init,learning_rate,lmbda,n_batches,logistic = False):
@@ -111,9 +114,13 @@ class Gradient_descent(Basic_sgd):
 
     def update(self):
         self.find_gradient()
-        self.change = -(self.learning_rate*self.gradient + self.change*self.momentum)
+        self.v = self.learning_rate*self.gradient + self.change*self.momentum
+        self.change = -self.v
         self.theta += self.change
 
+    def reset(self):
+        super().reset()
+        self.v = 0
 
 class ADA(Gradient_descent):
     """ Adagrad method for tuning the learning rate """
