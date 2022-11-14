@@ -49,7 +49,7 @@ class Basic_grad:
         self.change = -self.learning_rate*self.gradient
         self.theta += self.change
 
-    def advance(self,n_epochs = 1,stop_crit = 0):
+    def advance(self,n_epochs = 1,stop_crit = 0.0):
         for epoch in range(n_epochs):
             self.update()
             if abs(np.mean(self.gradient)) < stop_crit:
@@ -69,7 +69,7 @@ class Momentum_grad(Basic_grad):
 
     def update(self):
         gradient = self.find_gradient()
-        self.change = -(self.learning_rate*gradient + self.change*self.momentum)
+        self.change = -(self.learning_rate*self.gradient + self.change*self.momentum)
         self.theta += self.change
 
 
@@ -85,16 +85,16 @@ class Basic_sgd(Basic_grad):
 
     def find_gradient(self):
         
-        gradient = np.zeros((self.theta.shape))
+        cumu_grad = np.zeros((self.theta.shape))
         indices = self.rng.permuted(self.indices)
         for j in range(self.n_batches):
             k = self.rng.integers(0,self.n_batches)
             batch_indices = indices[k]
             X_b = self.X[batch_indices]
             y_b = self.y[batch_indices]
-            gradient += self.find_partial_gradient(X_b,y_b)
+            cumu_grad += self.find_partial_gradient(X_b,y_b)
 
-        return gradient/self.n_batches
+        self.gradient = cumu_grad/self.n_batches
 
     def find_partial_gradient(self,X_b,y_b):
         return 2*((1/self.n_datapoints)*X_b.T @ (X_b @ self.theta-y_b) + self.lmbda*self.theta)

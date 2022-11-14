@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from gradient_descent_iterators import *
 from misc import MSE, make_design_1D
 from sklearn.model_selection import train_test_split
-from generate import gen_simple
+from generate import simple_poly
 
 from numpy.random import default_rng
 from hyperparams import Hyperparams
@@ -129,7 +129,7 @@ def make_sgd_compare_plot(x, y, params, n_features, n_iterations, n_predictions,
 def simple_plots():
     # Collecting and preparing data + setting initial parameters
     n_datapoints = 50
-    x, y = gen_simple(n_datapoints)
+    x, y = simple_poly(n_datapoints)
     n_features = 3
     n_epochs = 200
     lmbda = 0
@@ -150,7 +150,7 @@ def simple_plots():
 # Seaborn plots
 def comparison_plots():
     n_datapoints = 300
-    x, y = gen_simple(n_datapoints)
+    x, y = simple_poly(n_datapoints)
 
     n_features = 3
     n_predictions = 200
