@@ -16,41 +16,65 @@ from activation_funcs import *
 
 
 
-# np.random.seed(1984)
+np.random.seed(1984)
 
-def to_categorical_numpy(integer_vector):
-    n_inputs = len(integer_vector)
-    n_categories = np.max(integer_vector) + 1
-    onehot_vector = np.zeros((n_inputs, n_categories))
-    onehot_vector[range(n_inputs), integer_vector] = 1
-    
-    return onehot_vector
-
-def find_best_hyperparams(min_eta, max_eta, min_lmbd, max_lmbd):
+def find_best_hyperparams(min_learning_rate, max_learning_rate, min_lmbd, max_lmbd):
 	# from adjust hyperparams
 	"""blah
-	min_eta, max_eta, min_lmbd, max_lmbd: int, defines range for hyperparameters in LOG SCALE
+	min_learning_rate, max_learning_rate, min_lmbd, max_lmbd: int, defines range for hyperparameters in LOG SCALE
 	"""
 
-	nn_container = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
-
-	eta_vals = np.logspace(min_eta, max_eta, 8)
-	lmbd_vals = np.logspace(min_lmbd, max_lmbd, 8)
-
-	for i, eta in enumerate(eta_vals):
-		for j, lmbd_vals in enumerate(lmbd_vals):
-			continue
+	# find_params(min_learning_rate, max_learning_rate, min_lmbd, max_lmbd, is_regressor=True)
+	find_params(min_learning_rate, max_learning_rate, min_lmbd, max_lmbd, is_regressor=False)
 
 
 
-def visualiser():
-	# seeborn heat map learning_rate vs lambda
-	learning_rates = [0.00001, 0.0001, 0.001, 0.01, 0.1]
-	lmbds = [0.00001, 0.0001, 0.001, 0.01, 0.1]
+def find_params(min_learning_rate, max_learning_rate, min_lmbd, max_lmbd, is_regressor):
 
-	for learning_rate in learning_rates:
-		for lmbds in lmbds:
-			continue
+	if is_regressor:
+
+		learning_rate_vals = np.logspace(min_learning_rate, max_learning_rate, max_learning_rate-min_learning_rate+1)
+		lmbd_vals = np.logspace(min_lmbd, max_lmbd, max_lmbd-min_lmbd+1)
+
+		mse_scores = np.zeros((len(learning_rate_vals), len(lmbd_vals)))
+
+		xn,yn = gen_simple2(2000)
+		X_train, X_test, y_train, y_test = train_test_split(xn,yn, train_size=0.8, test_size=0.2)
+
+		for i, learning_rate in enumerate(learning_rate_vals):
+			for j, lmbd in enumerate(lmbd_vals):
+				pred, mse_scores[i][j] = my_regression(X_train, X_test, y_train, y_test,
+					learning_rate=learning_rate, lmbd=lmbd,
+					activation="relu", activation_out="linear",is_debug=False, is_mse=True)
+
+		fig, ax = plt.subplots(figsize = (10, 10))
+		sns.heatmap(mse_scores, annot=True, ax=ax, cmap="viridis")
+		ax.set_title("MSE scores")
+		ax.set_ylabel("$\eta$")
+		ax.set_xlabel("$\lambda$")
+		plt.savefig("hyperparams_regr.pdf")
+		plt.show()
+
+	else:
+		learning_rate_vals = np.logspace(min_learning_rate, max_learning_rate, max_learning_rate-min_learning_rate+1)
+		lmbd_vals = np.logspace(min_lmbd, max_lmbd, max_lmbd-min_lmbd+1)
+
+		X_train, X_test, y_train, y_test = cancer()
+		accuracy_scores = np.zeros((len(learning_rate_vals), len(lmbd_vals)))
+
+		for i, learning_rate in enumerate(learning_rate_vals):
+			for j, lmbd in enumerate(lmbd_vals):
+				accuracy_scores[i][j] = my_classification(X_train, X_test, y_train, y_test,
+					learning_rate=learning_rate, lmbd=lmbd,
+					activation="sigmoid", activation_out="sigmoid",is_debug=False, is_show_cm=False)
+
+		fig, ax = plt.subplots(figsize = (10, 10))
+		sns.heatmap(accuracy_scores, annot=True, ax=ax, cmap="viridis")
+		ax.set_title("Accuracy scores")
+		ax.set_ylabel("$\eta$")
+		ax.set_xlabel("$\lambda$")
+		plt.savefig("hyperparams_clf.pdf")
+		plt.show()
 
 
 # prepare data for training
@@ -82,7 +106,7 @@ def cancer():
 # regression 
 # basic_nn_pred(0.001,0)
 
-def my_regression(X_train, X_test, y_train, y_test, activation, activation_out, learning_rate, lmbd, is_debug=False):
+def my_regression(X_train, X_test, y_train, y_test, activation, activation_out, learning_rate, lmbd, is_debug=False, is_mse=False):
 	nn = NNRegressor(X_train,y_train, 
 		1, np.array([100]), 
 		activation=activation,activation_out=activation_out, 
@@ -92,10 +116,10 @@ def my_regression(X_train, X_test, y_train, y_test, activation, activation_out, 
 	nn.debugger.print_static()
 	nn.train()
 	pred = nn.predict(X_test)
-	r2 = nn.R2(X_test,y_test)
-	print("myR2",r2)
+	if is_mse:
+		return pred, nn.score(X_test, y_test)
 
-	return pred, r2
+	return pred, R2(X_test,y_test)
 
 def sk_regression(X_train, X_test, y_train, y_test, activation):
 
@@ -130,7 +154,7 @@ def run_regression(activation_out, learning_rate=0.001, lmbd=0.001):
 		plt.title("Regression " + str(activation) + " R2 = " + str(myr2))
 		plt.legend()
 		# plt.show()
-		plt.savefig("plots/regression-" + activation + ".png")
+		plt.savefig("plots/regression-" + activation + ".pdf")
 		plt.close()
 
 
@@ -138,7 +162,7 @@ def my_classification(X_train, X_test, y_train, y_test,
 	n_catagories=1,
 	learning_rate=0.001, lmbd=0.001,
 	n_epochs=10, batch_size=100,
-	activation="sigmoid", activation_out="sigmoid", is_debug=False):
+	activation="sigmoid", activation_out="sigmoid", is_debug=False, is_show_cm=True):
 		
 
 	# print(y_train.shape)
@@ -153,16 +177,19 @@ def my_classification(X_train, X_test, y_train, y_test,
 	# nn.debugger.print_static()
 	clf.train()
 	result = clf.predict(X_test)
-	print("My accuracy:", clf.score(X_test, y_test))
+	acc = clf.score(X_test, y_test)
+	print("My accuracy:", acc)
 
-	cm = confusion_matrix(y_test, result)
-	disp = ConfusionMatrixDisplay(confusion_matrix=cm)
-	disp.plot()
-	plt.title("My Classification")
-	plt.savefig("plots/my-clf.pdf")
+	if is_show_cm:
+		cm = confusion_matrix(y_test, result)
+		disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+		disp.plot()
+		plt.title("My Classification")
+		plt.savefig("plots/my-clf.pdf")
+
+	return acc
 
 
-	
 
 
 
@@ -195,18 +222,21 @@ def run_classification():
 	sk_classification(X_train, X_test, y_train, y_test)
 
 
-# ====================================Function Calls Starting Here==============================================
+# ====================================Function Calls Below==============================================
 
 # ignore stupid matplotlib warnings
 warnings.filterwarnings("ignore" )
 
 # regression
-activations = ["sigmoid", "relu", "tanh"] #, "leaky_relu"]
-run_regression("linear")
+# activations = ["sigmoid", "relu", "tanh"] #, "leaky_relu"]
+# run_regression("linear")
+find_best_hyperparams(-9,2, -9,2)
 
 
 # classification
 run_classification()
+
+
 
 
 
