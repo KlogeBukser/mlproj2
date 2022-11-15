@@ -1,7 +1,6 @@
 import numpy as np
 from activation_funcs import ActivationFunction
 
-from generate import gen_simple
 from misc import MSE, MSE_prime, R2, logistic_grad
 from NNDebugger import *
 from sklearn.model_selection import train_test_split
@@ -204,7 +203,7 @@ class NeuralNetwork:
 		training_score = self.score(self.X_data_full, self.y_data_full)
 		if not self.is_classifier:
 			if training_score > 0.5:
-				print("f'CONVERGENCE ERROR: Maximum iteration (" + str(self.n_epochs*self.n_iter) 
+				print("CONVERGENCE ERROR: Maximum iteration (" + str(self.n_epochs*self.n_iter) 
 					+ ") reached. Model has not converged, try increasing the number of iterations.")
 
 	def prep(self):

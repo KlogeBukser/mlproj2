@@ -24,7 +24,7 @@ def find_best_hyperparams(min_learning_rate, max_learning_rate, min_lmbd, max_lm
 	min_learning_rate, max_learning_rate, min_lmbd, max_lmbd: int, defines range for hyperparameters in LOG SCALE
 	"""
 
-	# find_params(min_learning_rate, max_learning_rate, min_lmbd, max_lmbd, is_regressor=True)
+	find_params(min_learning_rate, max_learning_rate, min_lmbd, max_lmbd, is_regressor=True)
 	find_params(min_learning_rate, max_learning_rate, min_lmbd, max_lmbd, is_regressor=False)
 
 
@@ -38,7 +38,7 @@ def find_params(min_learning_rate, max_learning_rate, min_lmbd, max_lmbd, is_reg
 
 		mse_scores = np.zeros((len(learning_rate_vals), len(lmbd_vals)))
 
-		xn,yn = gen_simple2(2000)
+		xn,yn = simple_poly(2000)
 		X_train, X_test, y_train, y_test = train_test_split(xn,yn, train_size=0.8, test_size=0.2)
 
 		for i, learning_rate in enumerate(learning_rate_vals):
@@ -111,7 +111,7 @@ def my_regression(X_train, X_test, y_train, y_test, activation, activation_out, 
 		1, np.array([100]), 
 		activation=activation,activation_out=activation_out, 
 		learning_rate=learning_rate, lmbd=lmbd,
-		n_epochs=100, batch_size=100,
+		n_epochs=10, batch_size=100,
 		is_debug=is_debug)
 	nn.debugger.print_static()
 	nn.train()
@@ -134,8 +134,8 @@ def sk_regression(X_train, X_test, y_train, y_test, activation):
 
 
 def run_regression(activation_out, learning_rate=0.001, lmbd=0.001):
-	xn,yn,x,y = gen_simple2(2000, True)
-	X_train, X_test, y_train, y_test = train_test_split(xn,yn, train_size=0.8, test_size=0.2)
+	x,yn,y = simple_poly(1000, True)
+	X_train, X_test, y_train, y_test = train_test_split(x,yn, train_size=0.8, test_size=0.2)
 
 
 	for activation in activations:
@@ -161,7 +161,7 @@ def run_regression(activation_out, learning_rate=0.001, lmbd=0.001):
 def my_classification(X_train, X_test, y_train, y_test, 
 	n_catagories=1,
 	learning_rate=0.001, lmbd=0.001,
-	n_epochs=10, batch_size=100,
+	n_epochs=5, batch_size=100,
 	activation="sigmoid", activation_out="sigmoid", is_debug=False, is_show_cm=True):
 		
 
@@ -188,9 +188,6 @@ def my_classification(X_train, X_test, y_train, y_test,
 		plt.savefig("plots/my-clf.pdf")
 
 	return acc
-
-
-
 
 
 def sk_classification(X_train, X_test, y_train, y_test):
