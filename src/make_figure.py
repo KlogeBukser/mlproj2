@@ -6,6 +6,10 @@ import matplotlib.pyplot as plt
 from gradient_descent_iterators import *
 from misc import MSE, make_design_1D
 from sklearn.model_selection import train_test_split
+from generate import simple_poly
+
+from numpy.random import default_rng
+from hyperparams import Hyperparams
 
 def save_figure(filename):
     file_dir = os.path.dirname(os.path.abspath(__file__)) + "/plots"       # Finds the plot folder even when ran from outside src
@@ -13,19 +17,19 @@ def save_figure(filename):
     plt.savefig(full_path)
 
 
-def get_sgd_iterator(X, y, theta_init, learning_rate = 0.001, lmbda = 0, n_batches = 1, momentum = 0,algo = 'basic'):
+def get_sgd_iterator(X, y, theta_init, learning_rate = 0.001, lmbda = 0, n_batches = 1, momentum = 0,algo = 'basic',logistic = False):
 
     if algo == 'ada':
-        return ADA(X,y,theta_init,learning_rate, lmbda, n_batches, momentum)
+        return ADA(X,y,theta_init,learning_rate, lmbda, n_batches, momentum,logistic)
     if algo == 'rms':
-        return RMSProp(X,y,theta_init,learning_rate, lmbda, n_batches, momentum)
+        return RMSProp(X,y,theta_init,learning_rate, lmbda, n_batches, momentum,logistic)
     if algo == 'adam':
-        return ADAM(X,y,theta_init,learning_rate, lmbda, n_batches, momentum)
+        return ADAM(X,y,theta_init,learning_rate, lmbda, n_batches, momentum,logistic)
 
-    return Gradient_descent(X,y,theta_init,learning_rate, lmbda, n_batches, momentum)
+    return Gradient_descent(X,y,theta_init,learning_rate, lmbda, n_batches, momentum,logistic)
 
 
-def momentum_plot(x,y,learning_rate,n_epochs,n_features,lmbda,n_batches = 1,momentums = np.arange(0,1,0.2),algo = 'basic',smooth = False):
+def momentum_plot(x,y,learning_rate,n_epochs,n_features,lmbda,n_batches = 1,momentums = np.arange(0,1,0.2),algo = 'basic',smooth = False,logistic = False):
     """ Makes momentum plot for standard gradient descent algorithm. """
 
     X = make_design_1D(x,n_features)
@@ -38,7 +42,7 @@ def momentum_plot(x,y,learning_rate,n_epochs,n_features,lmbda,n_batches = 1,mome
 
     for momentum in momentums:
         theta_init = np.ones((n_features, 1))
-        gd_iterator = get_sgd_iterator(X_train,y_train,theta_init,learning_rate,lmbda,n_batches,momentum,algo)
+        gd_iterator = get_sgd_iterator(X_train,y_train,theta_init,learning_rate,lmbda,n_batches,momentum,algo,logistic)
         for epoch in epochs:
             gd_iterator.advance()
             y_pred = gd_iterator.predict(X_test,smooth)
@@ -54,7 +58,7 @@ def momentum_plot(x,y,learning_rate,n_epochs,n_features,lmbda,n_batches = 1,mome
     save_figure('momentum.png')
     plt.close()
 
-def batches_plot(x,y,learning_rate,n_epochs,n_features,lmbda,n_batches_list = np.arange(1,20,3),momentum = 0, algo = 'basic', smooth = False):
+def batches_plot(x,y,learning_rate,n_epochs,n_features,lmbda,n_batches_list = np.arange(1,20,3),momentum = 0, algo = 'basic', smooth = False,logistic = False):
     """ Makes momentum plot for standard gradient descent algorithm. """
 
     X = make_design_1D(x,n_features)
@@ -67,7 +71,7 @@ def batches_plot(x,y,learning_rate,n_epochs,n_features,lmbda,n_batches_list = np
 
     for n_batches in n_batches_list:
         theta_init = np.ones((n_features, 1))
-        gd_iterator = get_sgd_iterator(X_train,y_train,theta_init,learning_rate,lmbda,n_batches,momentum,algo)
+        gd_iterator = get_sgd_iterator(X_train,y_train,theta_init,learning_rate,lmbda,n_batches,momentum,algo,logistic)
         for epoch in epochs:
             gd_iterator.advance()
             y_pred = gd_iterator.predict(X_test,smooth)
@@ -119,3 +123,57 @@ def make_sgd_compare_plot(x, y, params, n_features, n_iterations, n_predictions,
     g.fig.suptitle('Mean squared error after ' + str(n_iterations) + ' iterations')
     save_figure(filename)
     plt.close()
+
+
+
+def simple_plots():
+    # Collecting and preparing data + setting initial parameters
+    n_datapoints = 50
+    x, y = simple_poly(n_datapoints)
+    n_features = 3
+    n_epochs = 200
+    lmbda = 0
+    learning_rate = 0.1
+
+    algo = 'adam'
+    momentums = np.arange(0,0.6,0.1)
+    smooth = False
+    n_batches = 1
+    momentum_plot(x,y,learning_rate,n_epochs,n_features,lmbda,n_batches,momentums, algo,smooth,logistic = False)
+
+
+    n_batches_list = np.arange(1,11,3)
+    momentum = 0
+    batches_plot(x,y,learning_rate,n_epochs,n_features,lmbda,n_batches_list,momentum , algo, smooth,logistic = False)
+
+
+# Seaborn plots
+def comparison_plots():
+    n_datapoints = 300
+    x, y = simple_poly(n_datapoints)
+
+    n_features = 3
+    n_predictions = 200
+    n_iterations = 200
+
+
+    params = Hyperparams()
+
+    #make_sgd_compare_plot(x, y, params, n_features, n_iterations, n_predictions, 'comp1.png')
+
+
+    params.change_limits('learning_rates',0.15,upper = True)
+
+    make_sgd_compare_plot(x, y, params, n_features, n_iterations, n_predictions, 'comp2.png')
+
+    params.rm_algo('ada')
+
+    make_sgd_compare_plot(x, y, params, n_features, n_iterations, n_predictions, 'comp3.png')
+
+    params.change_limits('learning_rates',0.05,upper = False)
+
+    make_sgd_compare_plot(x, y, params, n_features, n_iterations, n_predictions, 'comp4.png')
+
+    params.change_limits('lmbdas',-2,upper = True)
+
+    make_sgd_compare_plot(x, y, params, n_features, n_iterations, n_predictions, 'comp5.png')
