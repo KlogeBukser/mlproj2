@@ -67,3 +67,10 @@ def logistic_grad(y_true, y_pred):
     result = y_pred-y_true
     return result
 
+def accuracy_score(y,y_pred):
+    n = len(y)
+    I = 0
+    for i in range(n):
+        if (y[i] - y_pred[i]) == 0:
+            I += 1
+    return I/n

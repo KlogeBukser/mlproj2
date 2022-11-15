@@ -37,8 +37,8 @@ class Basic_grad:
 
     def find_gradient_logistic(self):
         t = self.X @ self.theta
-        self.p = np.divide(1,1 + np.exp(-t))
-        self.gradient = 2*((1/self.n_datapoints)*self.X.T @ (self.p-self.y) + self.lmbda*self.theta)
+        p = np.divide(1,1 + np.exp(-t))
+        self.gradient = 2*((1/self.n_datapoints)*self.X.T @ (p-self.y) + self.lmbda*self.theta)
 
     
     def find_gradient_linear(self):
@@ -49,10 +49,10 @@ class Basic_grad:
         self.change = -self.learning_rate*self.gradient
         self.theta += self.change
 
-    def advance(self,n_epochs = 1,stop_crit = 0.0):
-        for epoch in range(n_epochs):
+    def advance(self,n_epochs = 1,stop_crit = 0.0, min_epochs = 0):
+        for epoch in range(1,n_epochs + 1):
             self.update()
-            if np.mean(abs(self.gradient)) < stop_crit:
+            if np.linalg.norm(self.change) < stop_crit and epoch > min_epochs:
                 break
         return epoch
     
@@ -80,13 +80,19 @@ class Momentum_grad(Basic_grad):
 class Basic_sgd(Basic_grad):
     def __init__(self,X,y,theta_init,learning_rate,lmbda,n_batches,logistic = False):
         super().__init__(X,y,theta_init,learning_rate,lmbda,logistic)
+        self.find_gradient = self.find_gradient_sgd
         self.rng = default_rng()
         self.n_batches = n_batches
         self.batch_size = int(self.n_datapoints/self.n_batches)
         self.indices = np.arange(0,self.n_batches*self.batch_size,1).reshape((self.n_batches,self.batch_size))
+
+        if logistic:
+            self.find_partial_gradient = self.find_partial_gradient_logistic
+        else:
+            self.find_partial_gradient = self.find_partial_gradient_linear
         
 
-    def find_gradient(self):
+    def find_gradient_sgd(self):
         
         cumu_grad = np.zeros((self.theta.shape))
         indices = self.rng.permuted(self.indices)
@@ -99,8 +105,13 @@ class Basic_sgd(Basic_grad):
 
         self.gradient = cumu_grad/self.n_batches
 
-    def find_partial_gradient(self,X_b,y_b):
+    def find_partial_gradient_linear(self,X_b,y_b):
         return 2*((1/self.n_datapoints)*X_b.T @ (X_b @ self.theta-y_b) + self.lmbda*self.theta)
+
+    def find_partial_gradient_logistic(self,X_b,y_b):
+        t = X_b @ self.theta
+        p = np.divide(1,1 + np.exp(-t))
+        return 2*((1/self.n_datapoints)*X_b.T @ (p-y_b) + self.lmbda*self.theta)
 
 
 class Gradient_descent(Basic_sgd):
