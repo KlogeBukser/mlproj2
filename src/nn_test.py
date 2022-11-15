@@ -1,5 +1,6 @@
 # nn_test.py
 from sklearn.datasets import load_breast_cancer
+from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier,MLPRegressor
 import matplotlib.pyplot as plt
@@ -15,8 +16,15 @@ from activation_funcs import *
 
 
 
-# np.random.seed(437)
+# np.random.seed(1984)
 
+def to_categorical_numpy(integer_vector):
+    n_inputs = len(integer_vector)
+    n_categories = np.max(integer_vector) + 1
+    onehot_vector = np.zeros((n_inputs, n_categories))
+    onehot_vector[range(n_inputs), integer_vector] = 1
+    
+    return onehot_vector
 
 def find_best_hyperparams(min_eta, max_eta, min_lmbd, max_lmbd):
 	# from adjust hyperparams
@@ -53,7 +61,20 @@ def cancer():
 	target = cancer_dataset.target
 	labels = cancer_dataset.feature_names
 
+	# print("here", [(labels[i],np.median(data[i])) for i in range(len(labels))])
 	X_train, X_test, y_train, y_test = train_test_split(data,target, train_size=0.8, test_size=0.2)
+	# y_train_onehot, y_test_onehot = to_categorical_numpy(y_train), to_categorical_numpy(y_test)
+
+	y_train = y_train.T.reshape(-1,1)
+	y_test = y_test.T.reshape(-1,1)
+
+	sc = StandardScaler()
+
+	# print(X_test[0:3][:10])
+
+	X_train = sc.fit_transform(X_train)
+	X_test = sc.transform(X_test)
+
 
 	return X_train, X_test, y_train, y_test
 
@@ -113,38 +134,36 @@ def run_regression(activation_out, learning_rate=0.001, lmbd=0.001):
 		plt.close()
 
 
-def run_classification():
-
-	X_train, X_test, y_train, y_test = cancer()
-
-	# my_classification(X_train, X_test, y_train, y_test)
-	# sk_classification(X_train, X_test, y_train, y_test)
-
-	cancer_results = []
-	for i in range(1):
-		sk_classification(X_train, X_test, y_train, y_test)
-	# print(cancer_results)
-
-# ====================================Function Calls Starting Here==============================================
-
 def my_classification(X_train, X_test, y_train, y_test, 
 	n_catagories=1,
 	learning_rate=0.001, lmbd=0.001,
-	activation="sigmoid", activation_out="sigmoid", is_debug=True):
+	n_epochs=10, batch_size=100,
+	activation="sigmoid", activation_out="sigmoid", is_debug=False):
 		
-	y_train = y_train.T.reshape(-1,1)
-	print(y_train.shape)
-	nn = NNClassifier(X_train, y_train,
+
+	# print(y_train.shape)
+	clf = NNClassifier(X_train, y_train,
 		1, np.array([100]), 
 		n_catagories=n_catagories,
 		activation=activation,activation_out=activation_out, 
-		n_epochs=100, batch_size=10,
+		n_epochs=n_epochs, batch_size=batch_size,
 		learning_rate=learning_rate, lmbd=lmbd,
 		is_debug=is_debug)
 
-	nn.debugger.print_static()
-	nn.train()
-	result = nn.predict(X_test)
+	# nn.debugger.print_static()
+	clf.train()
+	result = clf.predict(X_test)
+	print("My accuracy:", clf.score(X_test, y_test))
+
+	cm = confusion_matrix(y_test, result)
+	disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+	disp.plot()
+	plt.title("My Classification")
+	plt.savefig("plots/my-clf.pdf")
+
+
+	
+
 
 
 def sk_classification(X_train, X_test, y_train, y_test):
@@ -159,42 +178,35 @@ def sk_classification(X_train, X_test, y_train, y_test):
 	clf.fit(X_train, y_train)
 
 	predictions = clf.predict(X_test)
-	  #print(predictions)
-	  #print(y_test)
+	print("Sklearn's accuracy:", clf.score(X_test, y_test))
 	cm = confusion_matrix(y_test, predictions, labels=clf.classes_)
 	disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=clf.classes_)
 	disp.plot()
-	plt.show()
+	plt.title("Sklearn's Classification")
+	plt.savefig("plots/sk-clf.pdf")
 
-	
+
+def run_classification():
+
+	X_train, X_test, y_train, y_test = cancer()
+
+	my_classification(X_train, X_test, y_train, y_test, n_epochs=10, batch_size=100, is_debug=False)
+
+	sk_classification(X_train, X_test, y_train, y_test)
+
+
+# ====================================Function Calls Starting Here==============================================
 
 # ignore stupid matplotlib warnings
 warnings.filterwarnings("ignore" )
 
 # regression
 activations = ["sigmoid", "relu", "tanh"] #, "leaky_relu"]
-# run_regression("linear")
+run_regression("linear")
 
 
 # classification
 run_classification()
-
-# MAX_STEP = 10
-# X_train, X_test, y_train, y_test = cancer()
-# y_train = y_train.T.reshape(-1,1) # super important!!!!
-# myclf = NNClassifier(X_train, y_train,
-# 		1, np.array([100]), 
-# 		n_catagories=1,
-# 		activation="sigmoid",activation_out="sigmoid", 
-# 		n_epochs=10, batch_size=10,
-# 		learning_rate=0.001, lmbd=0.001,
-# 		is_debug=True)
-# # myclf.train()
-# for i in range(MAX_STEP):
-# 	myclf.prep()
-# 	myclf.feed_forward()
-# 	myclf.back_propagate()	
-
 
 
 

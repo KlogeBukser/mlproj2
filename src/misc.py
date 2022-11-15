@@ -62,6 +62,8 @@ def cal_variance(z_pred):
     """
     return np.mean( np.var(z_pred, axis=1, keepdims=True) )
 
-def logistic_grad(t, a):
-    return (a-t)/a*(1-a)
+def logistic_grad(y_true, y_pred):
+    # since only paired with Sigmoid, error can be y-p
+    result = y_pred-y_true
+    return result
 

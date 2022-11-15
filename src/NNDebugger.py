@@ -11,14 +11,16 @@ class NNDebugger:
 
 	def print_static(self):
 		if self.is_debug:
-			print(" \n ======================Static Params=========================\n\n ")
+			print(" \n ======================Static Params=========================\n ")
 			print("learning_rate", self.mynn.learning_rate)
 			print("lmbd", self.mynn.lmbd)
 			print("activation function:", self.activation)
 			print("output activation function:", self.activation_out)
+			print(" \n ============================================================\n ")
 
 	def print_wb(self, is_shape=True):
 		if self.is_debug:
+			print(" \n ======================Weights and Biases ========================\n ")
 			if is_shape:
 				for i in range(len(self.mynn.weights)-1):
 					print("weights " + str(i), self.mynn.weights[i].T.shape)
@@ -31,12 +33,13 @@ class NNDebugger:
 					print("bias " + str(i), self.mynn.biases[i])
 				print("weights out", self.mynn.weights[-1].T)
 				print("bias out", self.mynn.biases[-1].T)
+			print(" \n ============================================================\n ")
 
 
 	def print_xy(self):
 		if self.is_debug:
 			print("x", self.mynn.input.T)
-			print("y", self.mynn.Y_data.T)
+			print("y", self.mynn.y_data.T)
 
 
 	def print_ff(self, curr_step=10, steps=10):
@@ -44,6 +47,7 @@ class NNDebugger:
 			if not curr_step % (steps/10):
 				print(" \n ======================Feed Forward=========================\n\n ")
 				print("activations",self.mynn.layer_as)
+				print(" \n ============================================================\n ")
 
 
 	def print_bp(self,curr_step=10,steps=10):
@@ -64,11 +68,12 @@ class NNDebugger:
 
 					print("mean weights gradient" + str(i), np.mean(self.mynn.dws[i]))
 					print("mean biases gradient" + str(i), np.mean(self.mynn.dbs[i]))
+			print(" \n ============================================================\n ")
 
 	def print_score(self, curr_step=10, steps=10):
 
 		if self.is_debug:
 			if not curr_step % (steps/10):
 				print("iter", curr_step, "score", 
-					self.mynn.score(self.mynn.X_data_full, self.mynn.Y_data_full))
+					self.mynn.score(self.mynn.X_data_full, self.mynn.y_data_full))
 

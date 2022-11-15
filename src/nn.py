@@ -7,11 +7,14 @@ from NNDebugger import *
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
+
+# remove 
+
 # print(np.random.randn(2,3))	
 
 class NeuralNetwork:
 	"""NeuralNetwork
-	X_data_full, Y_data, n_layers, n_nodes_in_layer, n_epochs, batch_size, 
+	X_data_full, y_data, n_layers, n_nodes_in_layer, n_epochs, batch_size, 
 	n_hidden_layers: int, number of HIDDEN layers
 	n_nodes_in_layer: array, node count for each layer, length must equal to n_hidden_layers
 	n_catagotires: int, number of possible output, 0 for regression problems, 
@@ -20,7 +23,7 @@ class NeuralNetwork:
 	def __init__(
 			self, 
 			X_data_full, 
-			Y_data_full,  
+			y_data_full,  
 			n_hidden_layers, 
 			n_nodes_in_layer, 
 			n_catagories=1,
@@ -38,7 +41,7 @@ class NeuralNetwork:
 		self.layer_as = np.zeros(n_hidden_layers+1,dtype=object)# +1 for input to the output layer
 		self.layer_zs = np.zeros(n_hidden_layers+1,dtype=object)
 
-		self.Y_data_full = Y_data_full
+		self.y_data_full = y_data_full
 		self.n_hidden_layers = n_hidden_layers
 		self.n_nodes_in_layer = n_nodes_in_layer
 		self.n_catagories = n_catagories
@@ -139,7 +142,7 @@ class NeuralNetwork:
 		self.dbs = np.zeros(self.n_hidden_layers+1, dtype=object)
 
 		# output layer
-		self.errors[-1] = self.cost_grad(self.Y_data, self.layer_as[-1])
+		self.errors[-1] = self.cost_grad(self.y_data, self.layer_as[-1])
 		# print(self.errors[-1].shape)
 		# print(self.layer_as[-1].shape)
 		self.dws[-1] = np.matmul(self.layer_as[-2].T, self.errors[-1])
@@ -167,8 +170,6 @@ class NeuralNetwork:
 		self.weights -= self.learning_rate * self.dws
 		self.biases -= self.learning_rate * self.dbs
 
-		self.debugger.print_bp()
-
 	def train(self):
 		data_indices = np.arange(self.n_inputs)
 
@@ -186,7 +187,7 @@ class NeuralNetwork:
 
 				# minibatch training data
 				self.input = self.X_data_full[chosen_datapoints]
-				self.Y_data = self.Y_data_full[chosen_datapoints]
+				self.y_data = self.y_data_full[chosen_datapoints]
 
 
 				self.feed_forward()
@@ -195,12 +196,12 @@ class NeuralNetwork:
 				# self.debugger.print_bp(curr_step, steps)
 
 				# protection against overflow
-				if self.score(self.X_data_full, self.Y_data_full) > 100:
+				if self.score(self.X_data_full, self.y_data_full) > 100:
 					self.create_biases_and_weights()
 
 				self.debugger.print_score(i*self.n_iter+j,self.n_epochs*self.n_iter)
 
-		training_score = self.score(self.X_data_full, self.Y_data_full)
+		training_score = self.score(self.X_data_full, self.y_data_full)
 		if not self.is_classifier:
 			if training_score > 0.5:
 				print("f'CONVERGENCE ERROR: Maximum iteration (" + str(self.n_epochs*self.n_iter) 
@@ -214,9 +215,7 @@ class NeuralNetwork:
 					data_indices, size=self.batch_size, replace=False)
 
 		self.input = self.X_data_full[chosen_datapoints]
-		self.Y_data = self.Y_data_full[chosen_datapoints]
-
-		
+		self.y_data = self.y_data_full[chosen_datapoints]
 
 
 	# Evaluation
@@ -226,7 +225,7 @@ class NNRegressor(NeuralNetwork):
 	"""docstring for RegressionNeuralNetwork"""
 	def __init__(self, 
 			X_data_full, 
-			Y_data,  
+			y_data,  
 			n_hidden_layers, 
 			n_nodes, 
 			n_epochs=100, 
@@ -236,7 +235,7 @@ class NNRegressor(NeuralNetwork):
 			activation="leaky_relu",
 			activation_out="linear",
 			is_debug=False):
-		super(NNRegressor, self).__init__(X_data_full, Y_data, n_hidden_layers, n_nodes,
+		super(NNRegressor, self).__init__(X_data_full, y_data, n_hidden_layers, n_nodes,
 			n_epochs=n_epochs, batch_size=batch_size, 
 			learning_rate=learning_rate, 
 			lmbd=lmbd,
@@ -257,60 +256,63 @@ class NNRegressor(NeuralNetwork):
 
 		return self.feed_forward_out(X)
 
-	def R2(self,X,Y):
-		Y_pred = self.predict(X)
-		return R2(Y,Y_pred)
+	def R2(self,X,y):
+		y_pred = self.predict(X)
+		return R2(y,y_pred)
 
 
-	def score(self, X, Y):
+	def score(self, X, y):
 		'''Evaluation of model'''
-		Y_pred = self.predict(X)
-		return MSE(Y, Y_pred)
+		y_pred = self.predict(X)
+		return MSE(y, y_pred)
 
 
 class NNClassifier(NeuralNetwork):
-	"""Neural Network for classification problems"""
+	"""docstring for RegressionNeuralNetwork"""
 	def __init__(self, 
 			X_data_full, 
-			Y_data_full,  
+			y_data,  
 			n_hidden_layers, 
 			n_nodes, 
 			n_catagories,
-			activation="sigmoid",
-			activation_out="sigmoid",
-			n_epochs=10, 
-			batch_size=100, 
+			n_epochs=100, 
+			batch_size=1000, 
 			learning_rate=0.01, 
 			lmbd=0.0,
-			is_debug=False
-			):
-
-		super(NNClassifier, self).__init__(X_data_full, Y_data_full, 
-			n_hidden_layers=n_hidden_layers, n_nodes_in_layer=n_nodes, n_catagories=n_catagories,
-			n_epochs=n_epochs, batch_size=batch_size,
-			activation=activation, activation_out=activation_out, 
-			learning_rate=learning_rate, lmbd=lmbd, 
-			is_classifier=True,
-			is_debug=is_debug)
-
+			activation="leaky_relu",
+			activation_out="linear",
+			is_debug=False):
+		super(NNClassifier, self).__init__(X_data_full, y_data, n_hidden_layers, n_nodes,
+			n_catagories=n_catagories,n_epochs=n_epochs, batch_size=batch_size, 
+			learning_rate=learning_rate, 
+			lmbd=lmbd,
+			activation=activation, 
+			activation_out=activation_out,is_debug=is_debug, is_classifier=True)
 		self.cost_grad = logistic_grad
+
 
 	def __repr__(self):
 		# construct and return a string that represents the network
 		# architecture
-		return "NNClassifier: {}".format("-".join(str(self.n_nodes_in_layer)))
+		return "NNRegressor: {}".format(str(self.n_nodes_in_layer))
+
+
+	def predict_prob(self,X):
+		return self.feed_forward_out(X)
 
 	def predict(self,X):
+		probabilities = self.predict_prob(X)
+		return np.where(probabilities>0.5, 1, 0)
+		
+	def score(self, X_test, y_test):
 
-		probabilities = self.feed_forward_out(X)
-		# print(probabilities.T)
-		return np.where(probabilities > 0.5, 1, 0)
+		y_pred = np.zeros(y_test.shape)
+		y_pred[self.predict_prob(X_test) > 0.5] = 1
 
-	def score(self, X_test, Y_test):
-		'''Evaluation of model'''
-		Y_pred = self.predict(X_test)
-		# print(Y_pred)
-		return np.sum(Y_pred == Y_test) / len(Y_test)
+		return np.sum(y_pred == y_test) / len(y_test)
+
+
+
 
 
 
