@@ -9,7 +9,6 @@ from sklearn.model_selection import train_test_split
 from generate import simple_poly
 
 from numpy.random import default_rng
-from hyperparams import Hyperparams
 
 def save_figure(filename):
     file_dir = os.path.dirname(os.path.abspath(__file__)) + "/plots"       # Finds the plot folder even when ran from outside src
@@ -17,163 +16,139 @@ def save_figure(filename):
     plt.savefig(full_path)
 
 
-def get_sgd_iterator(X, y, theta_init, learning_rate = 0.001, lmbda = 0, n_batches = 1, momentum = 0,algo = 'basic',logistic = False):
+def get_sgd_iterator(X, y, theta_init, learning_rate = 0.001, lmbda = 0, n_batches = 1, momentum = 0,algo = 'SGD',logistic = False):
 
-    if algo == 'ada':
-        return ADA(X,y,theta_init,learning_rate, lmbda, n_batches, momentum,logistic)
-    if algo == 'rms':
-        return RMSProp(X,y,theta_init,learning_rate, lmbda, n_batches, momentum,logistic)
-    if algo == 'adam':
-        return ADAM(X,y,theta_init,learning_rate, lmbda, n_batches, momentum,logistic)
+    if algo == 'ADA':
+        return ADA(X,y,theta_init,learning_rate, lmbda, n_batches, momentum,logistic = logistic)
+    if algo == 'RMS':
+        return RMSProp(X,y,theta_init,learning_rate, lmbda, n_batches, momentum,logistic = logistic)
+    if algo == 'ADAM':
+        return ADAM(X,y,theta_init,learning_rate, lmbda, n_batches, momentum,logistic = logistic)
 
-    return Gradient_descent(X,y,theta_init,learning_rate, lmbda, n_batches, momentum,logistic)
+    return Gradient_descent(X,y,theta_init,learning_rate, lmbda, n_batches, momentum,logistic = logistic)
 
 
-def momentum_plot(x,y,learning_rate,n_epochs,n_features,lmbda,n_batches = 1,momentums = np.arange(0,1,0.2),algo = 'basic',smooth = False,logistic = False):
+def rates_plot(X, y, learning_rates = np.linspace(0, 0.15,1000), algo = 'SDG',n_batches = 1):
     """ Makes momentum plot for standard gradient descent algorithm. """
 
-    X = make_design_1D(x,n_features)
+    n_features = X.shape[1]
     X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
 
-
-    # Arrays for plotting
-    epochs = np.arange(0,n_epochs,1)
-    mses = np.empty(n_epochs)
-
-    for momentum in momentums:
-        theta_init = np.ones((n_features, 1))
-        gd_iterator = get_sgd_iterator(X_train,y_train,theta_init,learning_rate,lmbda,n_batches,momentum,algo,logistic)
-        for epoch in epochs:
-            gd_iterator.advance()
-            y_pred = gd_iterator.predict(X_test,smooth)
-            mses[epoch] = MSE(y_pred,y_test)
-            
-        plt.plot(epochs,mses,label = "Momentum: %.2f" % (momentum))
-
-    plt.title(" Momentum ")
-    plt.yscale("log")
-    plt.xlabel("Epochs")
-    plt.ylabel("MSE")
-    plt.legend()
-    save_figure('momentum.png')
-    plt.close()
-
-def batches_plot(x,y,learning_rate,n_epochs,n_features,lmbda,n_batches_list = np.arange(1,20,3),momentum = 0, algo = 'basic', smooth = False,logistic = False):
-    """ Makes momentum plot for standard gradient descent algorithm. """
-
-    X = make_design_1D(x,n_features)
-    X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
-
-
-    # Arrays for plotting
-    epochs = np.arange(0,n_epochs,1)
-    mses = np.empty(n_epochs)
-
-    for n_batches in n_batches_list:
-        theta_init = np.ones((n_features, 1))
-        gd_iterator = get_sgd_iterator(X_train,y_train,theta_init,learning_rate,lmbda,n_batches,momentum,algo,logistic)
-        for epoch in epochs:
-            gd_iterator.advance()
-            y_pred = gd_iterator.predict(X_test,smooth)
-            mses[epoch] = MSE(y_pred,y_test)
-            
-        plt.plot(epochs,mses,label = "Number of batches: %d" % (n_batches))
-
-    plt.title(" Number of minibatches ")
-    plt.yscale("log")
-    plt.xlabel("Epochs")
-    plt.ylabel("MSE")
-    plt.legend()
-    save_figure('batches.png')
-    plt.close()
-
-
-
-
-def make_dataframe_sgd(x, y, params, n_features = 3,n_epochs = 100,n_predictions = 200):
-
-    X = make_design_1D(x,n_features)
-    X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
-
-    rng = default_rng()
-
-
-    data = {'learning_rates' : {}, 'number_of_batches' : {}, 'lmbdas' : {}, 'mse' : {}, 'algorithm' : {}}
-    df = pd.DataFrame(data)
     theta_init = np.ones((n_features, 1))
-    
+
+    for i,n_epochs in enumerate([20,50,100,200]):
+        
+        mse = np.empty(len(learning_rates))
+        for i in range(len(learning_rates)):
+            iterator = get_sgd_iterator(X_train,y_train,theta_init,learning_rates[i],n_batches=n_batches,algo=algo)
+            iterator.advance(n_epochs)
+            y_pred = iterator.predict(X_test)
+            mse[i] = MSE(y_pred,y_test)
+        plt.plot(learning_rates,mse,label = " %d epochs" % (n_epochs))
+
+    plt.title(" MSE and initial learning rates with " + algo + " regression  \n learning rates $\in [%.2f,%.2f]$ | minibatches: %d" % (learning_rates[0],learning_rates[-1],n_batches))
+    plt.yscale("log")
+    plt.xlabel("Learning rate")
+    plt.ylabel("MSE")
+    plt.legend()
+    save_figure("learning_rate" + algo + "_" + str(n_batches) + "_" + ".pdf")
+    plt.close()
+
+
+
+
+def comparison_plots(X,y,learning_rate_range = [0.01,0.15],lmbda_range = [-8,-1],algos = ['SGD','ADA','RMS','ADAM'],filename = "comparisons.pdf"):
+    rng = default_rng(1)
+
+    n_predictions = 200
+    n_epochs = 100
+    momentum = 0
+    n_batches = 1    
+
+    X_train,X_test,y_train,y_test = train_test_split(X, y, train_size=0.8, test_size=0.2)
+    theta_init = np.zeros((X_train.shape[1],1))
+
+    data = {'learning_rates' : {}, '$\lambda$ (log$_{10}$)' : {}, 'MSE (log)' : {}, 'Algorithm' : {}}
+    df = pd.DataFrame(data)
 
     for i in range(n_predictions):
-        rate, batch, lmbda, algo = params(rng)
+        rate = rng.uniform(*learning_rate_range) 
+        lmbda = 10**(rng.uniform(*lmbda_range))
+        algo = rng.choice(algos)
 
-        # X_train,y_train,theta_init,learning_rate,lmbda,n_batches,momentum,algo
-        iterator = get_sgd_iterator(X_train,y_train, theta_init, rate, lmbda, batch,momentum = 0, algo = algo)
+        iterator = get_sgd_iterator(X_train,y_train, theta_init, rate, lmbda, n_batches, momentum, algo = algo)
         iterator.advance(n_epochs)
         y_pred = iterator.predict(X_test)
-        df.loc[len(df.index)] = [rate,batch,np.log10(lmbda),MSE(y_pred,y_test),algo]
+        df.loc[len(df.index)] = [rate,np.log10(lmbda),np.log(MSE(y_pred,y_test)),algo]
 
-    return df
+    
 
-
-def make_sgd_compare_plot(x, y, params, n_features, n_iterations, n_predictions,filename):
-
-    df = make_dataframe_sgd(x, y, params, n_features,n_iterations, n_predictions)
-    g = sns.pairplot(data=df, x_vars=['learning_rates', 'number_of_batches', 'lmbdas'], y_vars = ['mse'], hue='algorithm')
-    g.fig.subplots_adjust(top=0.85)
-    g.fig.suptitle('Mean squared error after ' + str(n_iterations) + ' iterations')
+    g = sns.pairplot(data=df, x_vars=['learning_rates', '$\lambda$ (log$_{10}$)'], y_vars = ['MSE (log)'], hue='Algorithm')
+    g.fig.subplots_adjust(top=0.8)
+    g.fig.suptitle('Mean squared error after ' + str(n_epochs) + ' iterations \n (momentum: %.2f | minibatches: %d | $\lambda$: %.2f )' % (momentum,n_batches,lmbda))
     save_figure(filename)
     plt.close()
 
 
 
-def simple_plots():
-    # Collecting and preparing data + setting initial parameters
-    n_datapoints = 50
-    x, y = simple_poly(n_datapoints)
-    n_features = 3
-    n_epochs = 200
-    lmbda = 0
-    learning_rate = 0.1
+def convergence_plots(X,y,algo = 'SDG', learning_rate = 0.3, batch_list = [1,2,5,8],bootstraps = 10):
+    
+    rng = default_rng(1)
 
-    algo = 'adam'
-    momentums = np.arange(0,0.6,0.1)
-    smooth = False
-    n_batches = 1
-    momentum_plot(x,y,learning_rate,n_epochs,n_features,lmbda,n_batches,momentums, algo,smooth,logistic = False)
-
-
-    n_batches_list = np.arange(1,11,3)
-    momentum = 0
-    batches_plot(x,y,learning_rate,n_epochs,n_features,lmbda,n_batches_list,momentum , algo, smooth,logistic = False)
-
-
-# Seaborn plots
-def comparison_plots():
-    n_datapoints = 300
-    x, y = simple_poly(n_datapoints)
-
-    n_features = 3
     n_predictions = 200
-    n_iterations = 200
+    lmbda = 0
+    n_epochs = 100
+    stop_crit = 1e-2
+    min_epochs = 5
+
+    X_train,X_test,y_train,y_test = train_test_split(X, y, train_size=0.8, test_size=0.2)
+
+    n_training_points = len(y_train)
+    theta_init = np.zeros((X_train.shape[1],1))
+
+    momentum_range = [0,1]
+    
+    data = {'epochs' : {}, 'MSE (log)' : {}, 'Minibatches' : {}, 'momentum' : {}}
+    df = pd.DataFrame(data)
 
 
-    params = Hyperparams()
+    for i in range(n_predictions):
+        n_batches = rng.choice(batch_list)
+        momentum = rng.uniform(*momentum_range)
+        epoch = 0
+        mse  = 0
+        for j in range(bootstraps):
+            indices = rng.integers(0,n_training_points,n_training_points)
+            iterator = get_sgd_iterator(X_train[indices],y_train[indices],theta_init,learning_rate=learning_rate,lmbda = lmbda,n_batches = n_batches,momentum=momentum,algo=algo)
+            epoch += iterator.advance(n_epochs = n_epochs, stop_crit = stop_crit, min_epochs = min_epochs)
+            mse += MSE(iterator.predict(X_test),y_test)
 
-    #make_sgd_compare_plot(x, y, params, n_features, n_iterations, n_predictions, 'comp1.png')
+        df.loc[len(df.index)] = [epoch/bootstraps, np.log(mse/bootstraps), n_batches, momentum]
 
+    df["Minibatches"] = df["Minibatches"].astype(int)
 
-    params.change_limits('learning_rates',0.15,upper = True)
+    g = sns.relplot(data=df, x='momentum', y ='epochs',hue = 'Minibatches', palette='bright',markers='.')
+    g.fig.subplots_adjust(top=0.85)
+    g.fig.suptitle('Convergence of ' + algo + ' regression model \n with momentum and number of minibatches as parameters \n (bootstraps: %d | learning rate: %.2f | $\lambda$: %.2f )' % (bootstraps,learning_rate,lmbda))
 
-    make_sgd_compare_plot(x, y, params, n_features, n_iterations, n_predictions, 'comp2.png')
+    save_figure(algo + 'convergence.pdf')
+    plt.close()
 
-    params.rm_algo('ada')
+    for momentum in [0,0.2,0.4,0.6,0.8]:
+        for n_batches in batch_list:
+            epochs = np.arange(n_epochs)
+            mse = np.zeros(n_epochs)
+            iterator = get_sgd_iterator(X_train,y_train,theta_init,learning_rate=learning_rate,lmbda = lmbda,n_batches = n_batches,momentum=0,algo=algo)
+            for epoch in range(n_epochs):
+                iterator.advance()
+                pred = iterator.predict(X_test)
+                mse[epoch] = np.log(MSE(pred,y_test))
+            
+            plt.plot(epochs,mse,label = '%d minibatches' % (n_batches))
 
-    make_sgd_compare_plot(x, y, params, n_features, n_iterations, n_predictions, 'comp3.png')
-
-    params.change_limits('learning_rates',0.05,upper = False)
-
-    make_sgd_compare_plot(x, y, params, n_features, n_iterations, n_predictions, 'comp4.png')
-
-    params.change_limits('lmbdas',-2,upper = True)
-
-    make_sgd_compare_plot(x, y, params, n_features, n_iterations, n_predictions, 'comp5.png')
+        plt.title("MSE over epochs with " + algo + " regression \n (momentum: %.2f | learning rate: %.2f | $\lambda$: %.2f ) " % (momentum,learning_rate,lmbda))
+        plt.xlabel("Number of epochs")
+        plt.ylabel("MSE (log)")
+        plt.legend()
+        save_figure(algo + "_" + str(momentum) +  "_mse.pdf")
+        plt.close()

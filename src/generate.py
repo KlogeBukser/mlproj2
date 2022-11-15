@@ -1,6 +1,6 @@
 import numpy as np
 
-def simple_poly(n_points, coeffs = [3,4], noise_scale = 0.5):
+def simple_poly(n_points, coeffs = [3,0,1], noise_scale = 0.5):
     """ Generates data for one variable polynomial """
 
     rng = np.random.default_rng()
