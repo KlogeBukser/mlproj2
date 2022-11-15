@@ -34,7 +34,7 @@ def rates_plot(X, y, learning_rates = np.linspace(0, 0.15,1000), algo = 'SDG',n_
     n_features = X.shape[1]
     X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
 
-    theta_init = np.ones((n_features, 1))
+    theta_init = np.zeros((n_features, 1))
 
     for i,n_epochs in enumerate([20,50,100,200]):
         
