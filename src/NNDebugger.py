@@ -16,6 +16,8 @@ class NNDebugger:
 			print("lmbd", self.mynn.lmbd)
 			print("activation function:", self.activation)
 			print("output activation function:", self.activation_out)
+			print("n_epochs", self.mynn.n_epochs)
+			print("Batch_size", self.mynn.batch_size)
 			print(" \n ============================================================\n ")
 
 	def print_wb(self, is_shape=True):
