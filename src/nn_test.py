@@ -17,7 +17,7 @@ from activation_funcs import *
 
 
 
-np.random.seed(1984)
+# np.random.seed(1984)
 
 def find_best_hyperparams(min_learning_rate, max_learning_rate, min_lmbd, max_lmbd):
 	# from adjust hyperparams
@@ -98,23 +98,22 @@ def cancer():
 
 	return X_train, X_test, y_train, y_test
 
-# result using my_nn
-# regression 
-# basic_nn_pred(0.001,0)
 
-def my_regression(X_train, X_test, y_train, y_test, activation, activation_out, learning_rate, lmbd, is_debug=False, is_mse=False):
+def my_regression(X_train, X_test, y_train, y_test, activation, activation_out, learning_rate, lmbd, n_epochs=10, batch_size=100, is_debug=False, is_mse=False):
 	nn = NNRegressor(X_train,y_train, 
 		1, np.array([100]), 
 		activation=activation,activation_out=activation_out, 
 		learning_rate=learning_rate, lmbd=lmbd,
-		n_epochs=10, batch_size=100,
+		n_epochs=n_epochs, batch_size=batch_size,
 		is_debug=is_debug)
-	nn.debugger.print_static()
 	nn.train()
 	pred = nn.predict(X_test)
 	if is_mse:
 		return pred, nn.score(X_test, y_test)
 
+	r2=nn.R2(X_test,y_test)
+	print("myR2", r2)
+	return pred, r2
 	return pred, R2(X_test,y_test)
 
 def sk_regression(X_train, X_test, y_train, y_test, activation):
@@ -129,23 +128,25 @@ def sk_regression(X_train, X_test, y_train, y_test, activation):
 	return sk_pred, r2
 
 
-def run_regression(activation_out, learning_rate=0.001, lmbd=0.001):
-	x,yn,y = simple_poly(1000, True)
+def run_regression(activation_out, coeffs=[3,2,1], noise_scale = 0.2,learning_rate=0.001, lmbd=0.001, n_epochs=10, batch_size=100, is_debug=False):
+	x,yn,y = simple_poly(5000, coeffs=coeffs, noise_scale = noise_scale, include_exact=True)
 	X_train, X_test, y_train, y_test = train_test_split(x,yn, train_size=0.8, test_size=0.2)
 
 
 	for activation in activations:
 		print(activation)
-		pred, myr2 = my_regression(X_train, X_test, y_train, y_test, "tanh", activation_out, learning_rate=learning_rate, lmbd=lmbd)
-		if activation == "sigmoid":
-			sk_pred, skr2 = sk_regression(X_train, X_test, y_train, y_test, "logistic")
-		else:
-			sk_pred, skr2 = sk_regression(X_train, X_test, y_train, y_test, activation)
+		pred, myr2 = my_regression(X_train, X_test, y_train, y_test, activation, activation_out, n_epochs=n_epochs, batch_size=batch_size, learning_rate=learning_rate, lmbd=lmbd, is_debug=is_debug)
+		if activation != "leaky_relu":
+			if activation == "sigmoid":
+				sk_pred, skr2 = sk_regression(X_train, X_test, y_train, y_test, "logistic")
+			else:
+				sk_pred, skr2 = sk_regression(X_train, X_test, y_train, y_test, activation)
 	
 		plt.plot(x,y, label="actual function", color='r')
 		plt.scatter(X_test, y_test, label="y_test", s=5)
 		plt.scatter(X_test, pred, label="my predition", s=8)
-		plt.scatter(X_test, sk_pred, label="sklearn prediction", s=8)
+		if activation != "leaky_relu":
+			plt.scatter(X_test, sk_pred, label="sklearn prediction", s=8)
 
 		plt.title("Regression " + str(activation) + " R2 = " + str(myr2))
 		plt.legend()
@@ -156,7 +157,7 @@ def run_regression(activation_out, learning_rate=0.001, lmbd=0.001):
 def my_classification(X_train, X_test, y_train, y_test, 
 	n_catagories=1,
 	learning_rate=0.001, lmbd=0.001,
-	n_epochs=5, batch_size=100,
+	n_epochs=1, batch_size=455,
 	activation="sigmoid", activation_out="sigmoid", is_debug=False, is_show_cm=True):
 		
 	clf = NNClassifier(X_train, y_train,
@@ -216,13 +217,13 @@ def run_classification():
 warnings.filterwarnings("ignore" )
 
 # regression
-# activations = ["sigmoid", "relu", "tanh"] #, "leaky_relu"]
-# run_regression("linear")
-find_best_hyperparams(-5,2, -5,2)
+activations = ["sigmoid", "relu", "tanh", "leaky_relu"]
+run_regression("linear", coeffs=[3,2,1], noise_scale = 0.5, n_epochs=20, batch_size=50, learning_rate=0.001, lmbd=0.0, is_debug=True)
+# find_best_hyperparams(-10,6, -6,2)
 
 
 # classification
-run_classification()
+# run_classification()
 
 
 
