@@ -4,9 +4,9 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from gradient_descent_iterators import *
-from misc import MSE, make_design_1D
+from misc import *
 from sklearn.model_selection import train_test_split
-from generate import simple_poly
+from sklearn.preprocessing import StandardScaler
 
 from numpy.random import default_rng
 
@@ -28,64 +28,104 @@ def get_sgd_iterator(X, y, theta_init, learning_rate = 0.001, lmbda = 0, n_batch
     return Gradient_descent(X,y,theta_init,learning_rate, lmbda, n_batches, momentum,logistic = logistic)
 
 
-def rates_plot(X, y, learning_rates = np.linspace(0, 0.15,1000), algo = 'SDG',n_batches = 1):
+def rates_plot(X, y, learning_rates = np.linspace(-7,-5), algo = 'SDG',n_batches = 2,logistic = False):
     """ Makes momentum plot for standard gradient descent algorithm. """
 
     n_features = X.shape[1]
     X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
 
+    filename = "learning_rate" + algo + "_" + str(n_batches) + ".png"
+    if logistic:
+        score_func = accuracy_score
+        score_name="Accuracy score"
+        
+        filename = "logi_" + filename
+        plt.title(score_name + " for initial learning rates with " + algo + " regression  \n learning rates $\in [10^{%d},10^{%.2f}])$ | minibatches: %d" % (learning_rates[0],learning_rates[-1],n_batches))
+        plt.xscale("log")
+        learning_rates = 10**learning_rates
+
+        sc = StandardScaler()
+        X_train = sc.fit_transform(X_train)
+        X_test = sc.transform(X_test)
+
+    else:
+        score_func = MSE
+        score_name="MSE"
+        plt.title(score_name + " for initial learning rates with " + algo + " regression  \n learning rates $\in [%.2f,%.2f]$ | minibatches: %d" % (learning_rates[0],learning_rates[-1],n_batches))
+        plt.yscale("log")
+
+    
+    
+
     theta_init = np.zeros((n_features, 1))
 
-    for i,n_epochs in enumerate([20,50,100,200]):
+    for n_epochs in [20,50,100,200]:
         
-        mse = np.empty(len(learning_rates))
+        score = np.empty(len(learning_rates))
         for i in range(len(learning_rates)):
-            iterator = get_sgd_iterator(X_train,y_train,theta_init,learning_rates[i],n_batches=n_batches,algo=algo)
+            iterator = get_sgd_iterator(X_train,y_train,theta_init,learning_rate=learning_rates[i],n_batches=n_batches,algo=algo,logistic=logistic)
+
             iterator.advance(n_epochs)
             y_pred = iterator.predict(X_test)
-            mse[i] = MSE(y_pred,y_test)
-        plt.plot(learning_rates,mse,label = " %d epochs" % (n_epochs))
+            score[i] = score_func(y_pred,y_test)
+        plt.plot(learning_rates,score,label = " %d epochs" % (n_epochs))
 
-    plt.title(" MSE and initial learning rates with " + algo + " regression  \n learning rates $\in [%.2f,%.2f]$ | minibatches: %d" % (learning_rates[0],learning_rates[-1],n_batches))
-    plt.yscale("log")
     plt.xlabel("Learning rate")
-    plt.ylabel("MSE")
+    plt.ylabel(score_name)
     plt.legend()
-    save_figure("learning_rate" + algo + "_" + str(n_batches) + "_" + ".pdf")
+    save_figure(filename)
     plt.close()
 
 
 
 
-def comparison_plots(X,y,learning_rate_range = [0.01,0.15],lmbda_range = [-8,-1],algos = ['SGD','ADA','RMS','ADAM'],filename = "comparisons.pdf"):
+def comparison_plots(X,y,learning_rate_range = np.linspace(0.01,0.15,100), lmbda_range = [-8,-1],algos = ['SGD','ADA','RMS','ADAM'],filename = "comparisons.pdf",logistic = False):
     rng = default_rng(1)
 
     n_predictions = 200
     n_epochs = 100
     momentum = 0
-    n_batches = 1    
+    n_batches = 1
 
     X_train,X_test,y_train,y_test = train_test_split(X, y, train_size=0.8, test_size=0.2)
     theta_init = np.zeros((X_train.shape[1],1))
 
-    data = {'learning_rates' : {}, '$\lambda$ (log$_{10}$)' : {}, 'MSE (log)' : {}, 'Algorithm' : {}}
+    learning_rates = np.linspace(*learning_rate_range)
+    if logistic:
+        score_func = accuracy_score
+        score_name="Accuracy score"
+        learning_rates = 10**learning_rates
+        rate_func = log10_default_func
+        sc = StandardScaler()
+
+        X_train = sc.fit_transform(X_train)
+        X_test = sc.transform(X_test)
+
+
+    else:
+        score_func = logMSE
+        score_name = "MSE"
+        rate_func = default_func
+
+    data = {'learning_rates' : {}, '$\lambda$ (log$_{10}$)' : {}, score_name : {}, 'Algorithm' : {}}
     df = pd.DataFrame(data)
 
     for i in range(n_predictions):
-        rate = rng.uniform(*learning_rate_range) 
+        rate = rng.choice(learning_rates) 
         lmbda = 10**(rng.uniform(*lmbda_range))
         algo = rng.choice(algos)
-
-        iterator = get_sgd_iterator(X_train,y_train, theta_init, rate, lmbda, n_batches, momentum, algo = algo)
+        iterator = get_sgd_iterator(X_train,y_train, theta_init, rate, lmbda, n_batches, momentum, algo = algo,logistic=logistic)
+        
         iterator.advance(n_epochs)
         y_pred = iterator.predict(X_test)
-        df.loc[len(df.index)] = [rate,np.log10(lmbda),np.log(MSE(y_pred,y_test)),algo]
+        score = score_func(y_pred,y_test)
+        df.loc[len(df.index)] = [rate_func(rate),np.log10(lmbda),score,algo]
 
     
 
-    g = sns.pairplot(data=df, x_vars=['learning_rates', '$\lambda$ (log$_{10}$)'], y_vars = ['MSE (log)'], hue='Algorithm')
+    g = sns.pairplot(data=df, x_vars=['learning_rates', '$\lambda$ (log$_{10}$)'], y_vars = [score_name], hue='Algorithm')
     g.fig.subplots_adjust(top=0.8)
-    g.fig.suptitle('Mean squared error after ' + str(n_epochs) + ' iterations \n (momentum: %.2f | minibatches: %d | $\lambda$: %.2f )' % (momentum,n_batches,lmbda))
+    g.fig.suptitle(score_name + ' after ' + str(n_epochs) + ' iterations \n (momentum: %.2f | minibatches: %d )' % (momentum,n_batches))
     save_figure(filename)
     plt.close()
 

@@ -18,4 +18,4 @@ X = make_design_1D(x,n_features)
 convergence_plots(X,y,algo = 'SGD', learning_rate = 0.1, batch_list = [1,2,5,10],bootstraps = 50)
 
 # Makes the (6) figures ADAconvergence.pdf, ADA_0_mse.pdf, ADA_0.2_mse.pdf, ADA_0.4_mse.pdf, ADA_0.6_mse.pdf, ADA_0.8_mse.pdf
-convergence_plots(X,y,algo = 'ADA', learning_rate = 0.5, batch_list = [1,2,10,50],bootstraps = 50)
+convergence_plots(X,y,algo = 'ADA', learning_rate = 0.5, batch_list = [1,2,5,10],bootstraps = 50)

@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier,MLPRegressor
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pandas as pd
 import warnings
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import ConfusionMatrixDisplay
@@ -20,7 +21,7 @@ from activation_funcs import *
 
 def find_best_hyperparams(min_learning_rate, max_learning_rate, min_lmbd, max_lmbd):
 	# from adjust hyperparams
-	"""blah
+	"""
 	min_learning_rate, max_learning_rate, min_lmbd, max_lmbd: int, defines range for hyperparameters in LOG SCALE
 	"""
 
@@ -31,49 +32,48 @@ def find_best_hyperparams(min_learning_rate, max_learning_rate, min_lmbd, max_lm
 
 def find_params(min_learning_rate, max_learning_rate, min_lmbd, max_lmbd, is_regressor):
 
+	learning_rate_vals = np.logspace(min_learning_rate, max_learning_rate, max_learning_rate-min_learning_rate+1)
+	lmbd_vals = np.logspace(min_lmbd, max_lmbd, max_lmbd-min_lmbd+1)
+
+	data = {'learning rate' : {}, 'lambda' : {}, 'Score' : {}}
+	df = pd.DataFrame(data)
+
 	if is_regressor:
-
-		learning_rate_vals = np.logspace(min_learning_rate, max_learning_rate, max_learning_rate-min_learning_rate+1)
-		lmbd_vals = np.logspace(min_lmbd, max_lmbd, max_lmbd-min_lmbd+1)
-
-		mse_scores = np.zeros((len(learning_rate_vals), len(lmbd_vals)))
 
 		xn,yn = simple_poly(2000)
 		X_train, X_test, y_train, y_test = train_test_split(xn,yn, train_size=0.8, test_size=0.2)
 
-		for i, learning_rate in enumerate(learning_rate_vals):
-			for j, lmbd in enumerate(lmbd_vals):
-				pred, mse_scores[i][j] = my_regression(X_train, X_test, y_train, y_test,
+		for learning_rate in learning_rate_vals:
+			for lmbd in lmbd_vals:
+				pred, score = my_regression(X_train, X_test, y_train, y_test,
 					learning_rate=learning_rate, lmbd=lmbd,
 					activation="relu", activation_out="linear",is_debug=False, is_mse=True)
+				df.loc[len(df.index)] = [np.log10(learning_rate),np.log10(lmbd),score]
 
 		fig, ax = plt.subplots(figsize = (10, 10))
-		sns.heatmap(mse_scores, annot=True, ax=ax, cmap="viridis")
+		sns.heatmap(df.pivot("learning rate", "lambda", "Score"), annot=True, ax=ax, cmap="viridis")
 		ax.set_title("MSE scores")
-		ax.set_ylabel("$\eta$")
-		ax.set_xlabel("$\lambda$")
+		ax.set_ylabel("Learning rate: log$_{10}(\eta)$")
+		ax.set_xlabel("Regularization parameter: log$_{10}(\lambda$)")
 		plt.savefig("hyperparams_regr.pdf")
 		plt.show()
 
 	else:
-		learning_rate_vals = np.logspace(min_learning_rate, max_learning_rate, max_learning_rate-min_learning_rate+1)
-		lmbd_vals = np.logspace(min_lmbd, max_lmbd, max_lmbd-min_lmbd+1)
 
 		X_train, X_test, y_train, y_test = cancer()
-		accuracy_scores = np.zeros((len(learning_rate_vals), len(lmbd_vals)))
 
-		for i, learning_rate in enumerate(learning_rate_vals):
-			for j, lmbd in enumerate(lmbd_vals):
-				print("learning_rate", learning_rate)
-				accuracy_scores[i][j] = my_classification(X_train, X_test, y_train, y_test,
+		for learning_rate in learning_rate_vals:
+			for lmbd in lmbd_vals:
+				score = my_classification(X_train, X_test, y_train, y_test,
 					learning_rate=learning_rate, lmbd=lmbd,
 					activation="sigmoid", activation_out="sigmoid",is_debug=False, is_show_cm=False)
+				df.loc[len(df.index)] = [np.log10(learning_rate),np.log10(lmbd),score]
 
 		fig, ax = plt.subplots(figsize = (10, 10))
-		sns.heatmap(accuracy_scores, annot=True, ax=ax, cmap="viridis")
+		sns.heatmap(df.pivot("learning rate", "lambda", "Score"), annot=True, ax=ax, cmap="viridis")
 		ax.set_title("Accuracy scores")
-		ax.set_ylabel("$\eta$")
-		ax.set_xlabel("$\lambda$")
+		ax.set_ylabel("Learning rate: log$_{10}(\eta)$")
+		ax.set_xlabel("Regularization parameter: log$_{10}(\lambda$)")
 		plt.savefig("hyperparams_clf.pdf")
 		plt.show()
 
@@ -84,18 +84,13 @@ def cancer():
 
 	data = cancer_dataset.data
 	target = cancer_dataset.target
-	labels = cancer_dataset.feature_names
 
-	# print("here", [(labels[i],np.median(data[i])) for i in range(len(labels))])
 	X_train, X_test, y_train, y_test = train_test_split(data,target, train_size=0.8, test_size=0.2)
-	# y_train_onehot, y_test_onehot = to_categorical_numpy(y_train), to_categorical_numpy(y_test)
 
 	y_train = y_train.T.reshape(-1,1)
 	y_test = y_test.T.reshape(-1,1)
 
 	sc = StandardScaler()
-
-	# print(X_test[0:3][:10])
 
 	X_train = sc.fit_transform(X_train)
 	X_test = sc.transform(X_test)
@@ -119,6 +114,7 @@ def my_regression(X_train, X_test, y_train, y_test, activation, activation_out, 
 	r2=nn.R2(X_test,y_test)
 	print("myR2", r2)
 	return pred, r2
+	return pred, R2(X_test,y_test)
 
 def sk_regression(X_train, X_test, y_train, y_test, activation):
 
@@ -154,8 +150,7 @@ def run_regression(activation_out, coeffs=[3,2,1], noise_scale = 0.2,learning_ra
 
 		plt.title("Regression " + str(activation) + " R2 = " + str(myr2))
 		plt.legend()
-		# plt.show()
-		plt.savefig("plots/regression-" + activation + ".png")
+		plt.savefig("plots/regression-" + activation + ".pdf")
 		plt.close()
 
 
@@ -164,9 +159,7 @@ def my_classification(X_train, X_test, y_train, y_test,
 	learning_rate=0.001, lmbd=0.001,
 	n_epochs=1, batch_size=455,
 	activation="sigmoid", activation_out="sigmoid", is_debug=False, is_show_cm=True):
-
-
-	print(X_train.shape)
+		
 	clf = NNClassifier(X_train, y_train,
 		1, np.array([100]), 
 		n_catagories=n_catagories,
@@ -196,8 +189,6 @@ def sk_classification(X_train, X_test, y_train, y_test):
 	clf.fit(X_train, y_train)
 
 	predictions = clf.predict(X_test)
-	#print(predictions)
-	#print(y_test)
 	counter = 0
 	clf = MLPClassifier()
 	clf.fit(X_train, y_train)
