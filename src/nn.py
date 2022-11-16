@@ -7,9 +7,6 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
 
-# remove 
-
-# print(np.random.randn(2,3))	
 
 class NeuralNetwork:
 	"""NeuralNetwork
@@ -179,7 +176,7 @@ class NeuralNetwork:
 				curr_step = i*self.n_iter+j
 				steps = self.n_epochs*self.n_iter
 
-				# pick datapoints with replacement
+				# pick datapoints without replacement
 				chosen_datapoints = np.random.choice(
 					data_indices, size=self.batch_size, replace=False
 				)
