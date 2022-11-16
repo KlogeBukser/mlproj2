@@ -7,11 +7,18 @@ from gradient_descent_iterators import *
 from misc import *
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
 
 from numpy.random import default_rng
 
+
+
 def save_figure(filename):
-    file_dir = os.path.dirname(os.path.abspath(__file__)) + "/plots"       # Finds the plot folder even when ran from outside src
+    # Makes folder for holding plots if it doesn't already exist
+    file_dir = os.path.dirname(os.path.abspath(__file__)) + "/plots"
+    if not os.path.exists(file_dir):
+        os.mkdir(file_dir)
     full_path = os.path.join(file_dir, filename)
     plt.savefig(full_path)
 
@@ -34,7 +41,7 @@ def rates_plot(X, y, learning_rates = np.linspace(-7,-5), algo = 'SDG',n_batches
     n_features = X.shape[1]
     X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
 
-    filename = "learning_rate" + algo + "_" + str(n_batches) + ".png"
+    filename = "learning_rate" + algo + "_" + str(n_batches) + ".pdf"
     if logistic:
         score_func = accuracy_score
         score_name="Accuracy score"
@@ -130,14 +137,13 @@ def comparison_plots(X,y,learning_rate_range = np.linspace(0.01,0.15,100), lmbda
 
 
 
-def convergence_plots(X,y,algo = 'SDG', learning_rate = 0.3, batch_list = [1,2,5,8],bootstraps = 10):
+def convergence_plots(X,y,algo = 'SDG', learning_rate = 0.3, batch_list = [1,2,5,8],bootstraps = 10,stop_crit = 1e-2):
     
     rng = default_rng(1)
 
     n_predictions = 200
     lmbda = 0
     n_epochs = 100
-    stop_crit = 1e-2
     min_epochs = 5
 
     X_train,X_test,y_train,y_test = train_test_split(X, y, train_size=0.8, test_size=0.2)
@@ -168,10 +174,11 @@ def convergence_plots(X,y,algo = 'SDG', learning_rate = 0.3, batch_list = [1,2,5
 
     g = sns.relplot(data=df, x='momentum', y ='epochs',hue = 'Minibatches', palette='bright',markers='.')
     g.fig.subplots_adjust(top=0.85)
-    g.fig.suptitle('Convergence of ' + algo + ' regression model \n with momentum and number of minibatches as parameters \n (bootstraps: %d | learning rate: %.2f | $\lambda$: %.2f )' % (bootstraps,learning_rate,lmbda))
+    g.fig.suptitle('Convergence of ' + algo + ' regression model \n with momentum and number of minibatches as parameters \n (bootstraps: %d | learning rate: %.2f | $\lambda$: %.2f | tolerance: %.2f )' % (bootstraps,learning_rate,lmbda,stop_crit))
 
     save_figure(algo + 'convergence.pdf')
     plt.close()
+
 
     for momentum in [0,0.2,0.4,0.6,0.8]:
         for n_batches in batch_list:
@@ -195,14 +202,12 @@ def convergence_plots(X,y,algo = 'SDG', learning_rate = 0.3, batch_list = [1,2,5
 
 def hyper_matrix(X,y,min_rate = -8, max_rate = 4, min_lmb = -8, max_lmb = 2, n_batches = 20, n_epochs = 10, algo = "SGD",logistic = False,rate_points = 1):
 
-
-    fig, ax = plt.subplots(figsize = (10, 10))
     X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, test_size=0.2)
 
     if logistic:
         score_func = accuracy_score
         title = "Accuracy score for logistic regression with " + algo + " method"
-        filename = algo + "_logistic_clf.png"
+        filename = algo + "_logistic_clf.pdf"
 
         scaler = StandardScaler()
         X_train = scaler.fit_transform(X_train)
@@ -214,7 +219,7 @@ def hyper_matrix(X,y,min_rate = -8, max_rate = 4, min_lmb = -8, max_lmb = 2, n_b
     else:
         score_func = logMSE
         title = "MSE score for " + algo + " regression"
-        filename = algo + "_logistic_reg.png"
+        filename = algo + "_logistic_reg.pdf"
 
         #learning_rates = np.round(np.linspace(min_rate*1e-2, max_rate*1e-2, max_rate-min_rate+1),2)
 
@@ -225,8 +230,6 @@ def hyper_matrix(X,y,min_rate = -8, max_rate = 4, min_lmb = -8, max_lmb = 2, n_b
 
     data = {'learning rate' : {}, 'lambda' : {}, 'Score' : {}}
     df = pd.DataFrame(data)
-
-
     
 
     theta = np.zeros((X_train.shape[1],1))
@@ -245,4 +248,50 @@ def hyper_matrix(X,y,min_rate = -8, max_rate = 4, min_lmb = -8, max_lmb = 2, n_b
     ax.set_ylabel("Learning rate: log$_{10}(\eta)$")
     ax.set_xlabel("Regularization parameter: log$_{10}(\lambda$)")
     save_figure(filename)
+    plt.close()
+
+
+
+def log_reg_sklearn(X, y, learning_rate, lmbda, n_epochs=100, predictions = 10):
+
+    data = {'Model' : {}, 'Accuracy score' : {}}
+    df = pd.DataFrame(data)
+    
+
+    for i in range(predictions):
+        X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, test_size=0.2)
+
+        # Make a copy for the sklear model, to make sure the data isn't changed before its used for the other models
+        sk_scaler = StandardScaler()
+        lr = LogisticRegression()
+        X_train_sk = np.copy(X_train)
+        X_test_sk = np.copy(X_test)
+
+        y_train_sk = np.copy(y_train).ravel()
+        y_test_sk = np.copy(y_test).ravel()
+
+        model = Pipeline([('standardize', sk_scaler),('log_reg', lr)])
+        model.fit(X_train_sk, y_train_sk)
+        sk_pred = model.predict(X_test_sk)
+        sk_score = accuracy_score(sk_pred,y_test_sk)
+        df.loc[len(df.index)] = ["sklearn",sk_score]
+
+        # Our models Models
+        scaler = StandardScaler()
+        X_train = scaler.fit_transform(X_train)
+        X_test = scaler.transform(X_test)
+
+        theta = np.zeros((X_train.shape[1],1))
+
+        for algo in ["SGD","ADA","RMS","ADAM"]:
+            our_model = get_sgd_iterator(X_train,y_train,theta,learning_rate=learning_rate,lmbda=lmbda,algo = algo, logistic = True)
+            our_model.advance(n_epochs)
+            pred = our_model.predict(X_test)
+            score = accuracy_score(pred,y_test)
+            df.loc[len(df.index)] = [algo, score]
+
+    fig, ax = plt.subplots(figsize = (10, 10))
+    sns.boxplot(data=df, x="Model", y="Accuracy score",ax = ax)
+    ax.set_title("Accuracy scores with logistic regression \n (Data samplings : %d | number of epochs : %d | Learning rate : %.2g)" % (predictions,n_epochs,learning_rate))
+    save_figure("Sklearn_comp.pdf")
     plt.close()

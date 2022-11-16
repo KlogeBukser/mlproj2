@@ -16,10 +16,10 @@ X = make_design_1D(x,n_features)
 
 
 # Comparison plots of several algorithms over learning rates and lambda values
-comparison_plots(X,y,learning_rate_range = [0.01,1],lmbda_range = [-4,0],algos = ['SGD','ADA','RMS','ADAM'],filename = "comparison1.png")
-comparison_plots(X,y,learning_rate_range = [0.01,1],lmbda_range = [-4,0],algos = ['ADA','RMS','ADAM'],filename = "comparison2.png")
-comparison_plots(X,y,learning_rate_range = [0.01,1],lmbda_range = [-4,-2],algos = ['ADA','RMS','ADAM'],filename = "comparison3.png")
-comparison_plots(X,y,learning_rate_range = [0.01,0.15],lmbda_range = [-4,0],algos = ['SGD'],filename = "comparison4.png")
+comparison_plots(X,y,learning_rate_range = [0.01,1],lmbda_range = [-4,0],algos = ['SGD','ADA','RMS','ADAM'],filename = "comparison1.pdf")
+comparison_plots(X,y,learning_rate_range = [0.01,1],lmbda_range = [-4,0],algos = ['ADA','RMS','ADAM'],filename = "comparison2.pdf")
+comparison_plots(X,y,learning_rate_range = [0.01,1],lmbda_range = [-4,-2],algos = ['ADA','RMS','ADAM'],filename = "comparison3.pdf")
+comparison_plots(X,y,learning_rate_range = [0.01,0.15],lmbda_range = [-4,0],algos = ['SGD'],filename = "comparison4.pdf")
 
 
 # Plot over selected ranges of learning rates for all four algorithms with 1 and 2 minibatches

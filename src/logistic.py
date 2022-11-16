@@ -16,16 +16,14 @@ if not os.path.exists(plot_path):
 # Regression
 # Generate data
 n_datapoints = 100
-x, y = simple_poly(n_datapoints)
-
-# Make design matrix
 n_features = 3
 x,y = simple_poly(n_datapoints,coeffs = [3,0,1], noise_scale = 0.5)
 X = make_design_1D(x,n_features)
 
+
 algos = ["SGD"]
 for algo in algos:
-    hyper_matrix(X,y,min_rate = -5, max_rate = -1, min_lmb = -8, max_lmb = 1, n_batches = 10, n_epochs = 200, algo = algo,logistic = False, rate_points=4)
+    hyper_matrix(X,y,min_rate = -5, max_rate = -1, min_lmb = -8, max_lmb = 1, n_batches = 10, n_epochs = 200, algo = algo,logistic = False, rate_points=4)    
 
 
 
