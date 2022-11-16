@@ -40,7 +40,7 @@ def MSE(z_test, z_pred):
     return np.mean((z_test - z_pred)**2)
 
 def MSE_prime(y_true, y_pred):
-    return 2*(y_pred-y_true)/y_true.size;
+    return 2*(y_pred-y_true)/y_true.size
 
 def cal_bias(z_test, z_pred):
     """computes the bias for a given prediction
@@ -71,6 +71,19 @@ def accuracy_score(y,y_pred):
     n = len(y)
     I = 0
     for i in range(n):
-        if (y[i] - y_pred[i]) == 0:
+        if y[i] == y_pred[i]:
             I += 1
     return I/n
+
+
+def logMSE(y,y_pred):
+    return np.log(MSE(y,y_pred))
+
+
+def default_func(params):
+    """ This is a basic function that can be reassigned if some condition holds true """
+    return params
+
+def log10_default_func(params):
+    """ Override function for default_func """
+    return np.log10(params)
