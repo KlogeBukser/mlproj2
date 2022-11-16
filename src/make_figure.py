@@ -193,34 +193,56 @@ def convergence_plots(X,y,algo = 'SDG', learning_rate = 0.3, batch_list = [1,2,5
         plt.close()
 
 
-def hyper_matrix(X,y,min_rate = -8, max_rate = 4, min_lmb = -8, max_lmb = 2, n_batches = 20, n_epochs = 10, algo = "SGD"):
+def hyper_matrix(X,y,min_rate = -8, max_rate = 4, min_lmb = -8, max_lmb = 2, n_batches = 20, n_epochs = 10, algo = "SGD",logistic = False,rate_points = 1):
 
-    learning_rates = np.logspace(min_rate, max_rate, max_rate-min_rate+1)
+
+    fig, ax = plt.subplots(figsize = (10, 10))
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, test_size=0.2)
+
+    if logistic:
+        score_func = accuracy_score
+        title = "Accuracy score for logistic regression with " + algo + " method"
+        filename = algo + "_logistic_clf.png"
+
+        scaler = StandardScaler()
+        X_train = scaler.fit_transform(X_train)
+        X_test = scaler.transform(X_test)
+
+        learning_rates = np.logspace(min_rate, max_rate, rate_points*(max_rate-min_rate) + 1)
+        
+
+    else:
+        score_func = logMSE
+        title = "MSE score for " + algo + " regression"
+        filename = algo + "_logistic_reg.png"
+
+        #learning_rates = np.round(np.linspace(min_rate*1e-2, max_rate*1e-2, max_rate-min_rate+1),2)
+
+
+    learning_rates = np.logspace(min_rate, max_rate, rate_points*(max_rate-min_rate) + 1)
     lmbd_vals = np.logspace(min_lmb, max_lmb, max_lmb-min_lmb+1)
+
 
     data = {'learning rate' : {}, 'lambda' : {}, 'Score' : {}}
     df = pd.DataFrame(data)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, test_size=0.2)
 
-    scaler = StandardScaler()
-    X_train = scaler.fit_transform(X_train)
-    X_test = scaler.transform(X_test)
+    
 
     theta = np.zeros((X_train.shape[1],1))
 
     for learning_rate in learning_rates:
         for lmbd in lmbd_vals:
-            solver = get_sgd_iterator(X_train,y_train,theta,learning_rate,lmbd,n_batches, logistic = True)
+            solver = get_sgd_iterator(X_train,y_train,theta,learning_rate,lmbd,n_batches, algo = algo, logistic = logistic)
             solver.advance(n_epochs)
             y_pred = solver.predict(X_test)
-            score = accuracy_score(y_pred,y_test)
+            score = score_func(y_pred,y_test)
             df.loc[len(df.index)] = [np.log10(learning_rate),np.log10(lmbd),score]
 
     fig, ax = plt.subplots(figsize = (10, 10))
     sns.heatmap(df.pivot("learning rate", "lambda", "Score"), annot=True, ax=ax, cmap="viridis")
-    ax.set_title("Accuracy scores for logistic regress with " + algo + " method")
+    ax.set_title(title)
     ax.set_ylabel("Learning rate: log$_{10}(\eta)$")
     ax.set_xlabel("Regularization parameter: log$_{10}(\lambda$)")
-    save_figure(algo + "logistic_clf.pdf")
-    plt.show()
+    save_figure(filename)
+    plt.close()
