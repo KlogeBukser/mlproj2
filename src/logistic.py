@@ -1,7 +1,15 @@
 import numpy as np
+from numpy.random import default_rng
+from make_figure import *
 from sklearn.datasets import load_breast_cancer
-from make_figure import rates_plot,comparison_plots
 
+rng = default_rng(seed = 5473)
+
+
+# Makes folder for holding plots if it doesn't already exist
+plot_path = os.path.dirname(os.path.abspath(__file__)) + "/plots"
+if not os.path.exists(plot_path):
+    os.mkdir(plot_path)
 
 
 df = load_breast_cancer()
@@ -9,11 +17,6 @@ df = load_breast_cancer()
 X = df.data
 y = df.target[:,np.newaxis]
 
-
-
-rates_plot(X, y, learning_rates = np.linspace(-8,0,200), algo = 'SGD',n_batches=1,logistic=True)
-rates_plot(X, y, learning_rates = np.linspace(-8,0,200), algo = 'RMS',n_batches=1,logistic=True)
-rates_plot(X, y, learning_rates = np.linspace(-8,0,200), algo = 'ADA',n_batches=1,logistic=True)
-rates_plot(X, y, learning_rates = np.linspace(-8,0,200), algo = 'ADAM',n_batches=1,logistic=True)
-
-comparison_plots(X,y,learning_rate_range = [-7,-5],lmbda_range = [-6,4],algos = ['SGD'],filename = "logi_comparison.png",logistic=True)
+algos = ["SGD","ADA","RMS","ADAM"]
+for algo in algos:
+    hyper_matrix(X,y,min_rate = -6, max_rate = 6, min_lmb = -8, max_lmb = 2, n_batches = 5, n_epochs = 10, algo = algo)
