@@ -45,11 +45,11 @@ class Basic_grad:
 
     def find_gradient_logistic(self,X,y):
         p = np.divide(1,1 + np.exp(-X @ self.theta))
-        return ((1/len(y))*X.T @ (p-y) + self.lmbda*self.theta)
+        return 2*((1/len(y))*X.T @ (p-y) + self.lmbda*self.theta)
 
     
     def find_gradient_linear(self,X,y):
-        return ((1/len(y))*X.T @ (X @ self.theta-y) + self.lmbda*self.theta)
+        return 2*((1/len(y))*X.T @ (X @ self.theta-y) + self.lmbda*self.theta)
 
     def update_params(self,gradient):
         self.change = -self.learning_rate*gradient
@@ -83,10 +83,6 @@ class Momentum_grad(Basic_grad):
         self.change = -self.v
         self.theta += self.change
 
-    '''def update(self,X,y):
-        gradient = self.find_gradient(X,y)
-        self.update_params(gradient)'''
-
     def reset(self):
         super().reset()
         self.v = 0
@@ -99,10 +95,6 @@ class Basic_sgd(Basic_grad):
         self.batch_size = int(self.n_datapoints/self.n_batches)
         self.indices = np.arange(0,self.n_batches*self.batch_size,1).reshape((self.n_batches,self.batch_size))
 
-        '''if logistic:
-            self.find_partial_gradient = self.find_partial_gradient_logistic
-        else:
-            self.find_partial_gradient = self.find_partial_gradient_linear'''
         
     def update(self,X,y):
         
@@ -115,26 +107,6 @@ class Basic_sgd(Basic_grad):
             super().update(X_b,y_b)
 
 
-    '''def find_gradient_sgd(self):
-        
-        cumu_grad = np.zeros((self.theta.shape))
-        indices = self.rng.permuted(self.indices)
-        for j in range(self.n_batches):
-            k = self.rng.integers(0,self.n_batches)
-            batch_indices = indices[k]
-            X_b = self.X[batch_indices]
-            y_b = self.y[batch_indices]
-            cumu_grad += self.find_partial_gradient(X_b,y_b)
-
-        self.gradient = cumu_grad/self.n_batches'''
-
-    '''def find_partial_gradient_linear(self,X_b,y_b):
-        return 2*((1/self.n_datapoints)*X_b.T @ (X_b @ self.theta-y_b) + self.lmbda*self.theta)
-
-    def find_partial_gradient_logistic(self,X_b,y_b):
-        p = np.divide(1,1 + np.exp(-X_b @ self.theta))
-        return 2*((1/self.n_datapoints)*X_b.T @ (p-y_b) + self.lmbda*self.theta)
-'''
 
 class Gradient_descent(Basic_sgd):
     """
@@ -149,7 +121,6 @@ class Gradient_descent(Basic_sgd):
         self.v = self.learning_rate*gradient + self.change*self.momentum
         self.change = -self.v
         self.theta += self.change
-        #super().update_params(gradient)
 
 
     def reset(self):
