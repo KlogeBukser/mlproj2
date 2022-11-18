@@ -11,6 +11,7 @@
 - python3 main_comparisons_sgd.py
 - python3 main_convergence_sgd.py
 - python3 sklearn_comparison.py
+- python3 neural_main.py
 
 ## Activation Functions
 
