@@ -5,13 +5,11 @@ import numpy as np
 
 rng = np.random.default_rng(1)
 
-# Generate data
-n_datapoints = 100
-x, y = simple_poly(n_datapoints)
 
 # Make design matrix
 n_features = 3
-x,y = simple_poly(n_datapoints,coeffs = [3,0,1], noise_scale = 0.1)
+n_datapoints = 100
+x,y = simple_poly(n_datapoints,coeffs = [3,2,1], noise_scale = 0.5)
 X = make_design_1D(x,n_features)
 
 

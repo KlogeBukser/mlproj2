@@ -182,13 +182,13 @@ def convergence_plots(X,y,algo = 'SDG', learning_rate = 0.3, batch_list = [1,2,5
 
     for momentum in [0,0.2,0.4,0.6,0.8]:
         for n_batches in batch_list:
-            epochs = np.arange(n_epochs)
-            mse = np.zeros(n_epochs)
+            epochs = np.arange(5,n_epochs,1)
+            mse = np.zeros(len(epochs))
             iterator = get_sgd_iterator(X_train,y_train,theta_init,learning_rate=learning_rate,lmbda = lmbda,n_batches = n_batches,momentum=0,algo=algo)
-            for epoch in range(n_epochs):
+            for i in range(len(epochs)):
                 iterator.advance()
                 pred = iterator.predict(X_test)
-                mse[epoch] = np.log(MSE(pred,y_test))
+                mse[i] = np.log(MSE(pred,y_test))
             
             plt.plot(epochs,mse,label = '%d minibatches' % (n_batches))
 
