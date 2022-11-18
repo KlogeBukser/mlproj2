@@ -201,7 +201,7 @@ class NeuralNetwork:
 
 		training_score = self.score(self.X_data_full, self.y_data_full)
 		if not self.is_classifier:
-			if training_score > 0.5:
+			if training_score > 10:
 				print("CONVERGENCE ERROR: Maximum iteration (" + str(self.n_epochs*self.n_iter) 
 					+ ") reached. Model has not converged, try increasing the number of iterations.")
 

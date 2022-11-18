@@ -19,7 +19,7 @@ from activation_funcs import *
 
 
 
-# np.random.seed(1984)
+
 
 def find_best_hyperparams(min_learning_rate, max_learning_rate, min_lmbd, max_lmbd):
 	# from adjust hyperparams
@@ -133,16 +133,28 @@ def sk_regression(X_train, X_test, y_train, y_test, activation):
 	return sk_pred, r2
 
 
-def run_regression(activation_out, 
-	coeffs=[3,2,1], noise_scale = 0.2,
+def run_regression(activation_out="linear", 
+	activation=None,
+	coeffs=[3,2,1], noise_scale = 0.5,
 	learning_rate=0.001, lmbd=0.001, 
-	n_epochs=10, batch_size=100, 
+	n_epochs=20, batch_size=80, 
 	is_debug=False):
 
-	x,yn,y = simple_poly(100, coeffs=coeffs, noise_scale = noise_scale, include_exact=True)
+	x,yn,y = simple_poly(1000, coeffs=coeffs, noise_scale = noise_scale, include_exact=True)
 	X_train, X_test, y_train, y_test = train_test_split(x,yn, train_size=0.8, test_size=0.2)
 
-	activations = ["sigmoid", "relu", "tanh", "leaky_relu"]
+	activations = ["sigmoid"]#, "relu", "tanh", "leaky_relu"]
+
+	# only use for cmp
+	if activation is not None:
+		pred, myr2 = my_regression(X_train, X_test, y_train, y_test, activation, activation_out, n_epochs=n_epochs, batch_size=batch_size, learning_rate=learning_rate, lmbd=lmbd, is_debug=is_debug)
+		if activation != "leaky_relu":
+			if activation == "sigmoid":
+				sk_pred, skr2 = sk_regression(X_train, X_test, y_train, y_test, "logistic")
+			else:
+				sk_pred, skr2 = sk_regression(X_train, X_test, y_train, y_test, activation)
+
+		return myr2, skr2
 
 	for activation in activations:
 		print(activation)
@@ -164,6 +176,8 @@ def run_regression(activation_out,
 		save_figure("regression-" + activation + ".pdf")
 		plt.close()
 
+	return myr2, skr2
+
 
 def my_classification(X_train, X_test, y_train, y_test, 
 	n_hidden_layers=1, n_nodes_in_layer=[100],
@@ -180,10 +194,10 @@ def my_classification(X_train, X_test, y_train, y_test,
 		learning_rate=learning_rate, lmbd=lmbd,
 		is_debug=is_debug)
 
-	# nn.debugger.print_static()
 	clf.train()
 	result = clf.predict(X_test)
 	acc = clf.score(X_test, y_test)
+	print("my accuracy", acc)
 
 	if is_show_cm:
 		cm = confusion_matrix(y_test, result)
@@ -191,6 +205,7 @@ def my_classification(X_train, X_test, y_train, y_test,
 		disp.plot()
 		plt.title("My Classification")
 		save_figure("my-clf.pdf")
+		plt.close()
 
 	return acc
 
@@ -205,25 +220,52 @@ def sk_classification(X_train, X_test, y_train, y_test):
 	clf.fit(X_train, y_train)
 
 	predictions = clf.predict(X_test)
-	print("Sklearn's accuracy:", clf.score(X_test, y_test))
+	sk_acc = clf.score(X_test, y_test)
+	print("Sklearn's accuracy:", sk_acc)
 	cm = confusion_matrix(y_test, predictions, labels=clf.classes_)
 	disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=clf.classes_)
 	disp.plot()
 	plt.title("Sklearn's Classification")
 	save_figure("sk-clf.pdf")
+	plt.close()
+
+	return sk_acc
 
 
-def run_classification():
+def run_classification(X_train, X_test, y_train, y_test, 
+	n_hidden_layers=1, n_nodes_in_layer=[100],
+	n_catagories=1,
+	learning_rate=0.001, lmbd=0.001,
+	n_epochs=10, batch_size=100,
+	activation="sigmoid", activation_out="sigmoid", is_debug=False, is_show_cm=True):
 
 	X_train, X_test, y_train, y_test = cancer()
 
-	my_classification(X_train, X_test, y_train, y_test, n_hidden_layers=2, n_nodes_in_layer=[100,100], n_epochs=10, batch_size=50, is_debug=False)
+	my_acc = my_classification(X_train, X_test, y_train, y_test, activation=activation, activation_out=activation, n_hidden_layers=n_hidden_layers, n_nodes_in_layer=n_nodes_in_layer, n_epochs=n_epochs, batch_size=batch_size, is_debug=is_debug, is_show_cm=is_show_cm)
 
-	sk_classification(X_train, X_test, y_train, y_test)
-
-
+	sk_acc = sk_classification(X_train, X_test, y_train, y_test)
 
 
+	return my_acc, sk_acc
+
+
+def cmp(f, activation,filename, title, score_name):
+	mine = []
+	sk = []
+	n=10
+	for i in range(n):
+		my_score, sk_score = f(activation=activation)
+		mine.append(my_score)
+		sk.append(sk_score)
+
+	plt.title(title)
+	plt.xlabel("Number of runs")
+	plt.ylabel(score_name)
+	plt.plot(np.arange(0,n,1),mine, label='my score')
+	plt.plot(np.arange(0,n,1),sk, label='sk_score')
+	plt.legend()
+	save_figure(filename)
+	plt.close()
 
 
 
