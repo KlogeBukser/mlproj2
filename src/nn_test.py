@@ -40,22 +40,22 @@ def find_params(min_learning_rate, max_learning_rate, min_lmbd, max_lmbd, is_reg
 
 	if is_regressor:
 
-		xn,yn = simple_poly(2000)
+		xn,yn = simple_poly(1000)
 		X_train, X_test, y_train, y_test = train_test_split(xn,yn, train_size=0.8, test_size=0.2)
 
 		for learning_rate in learning_rate_vals:
 			for lmbd in lmbd_vals:
 				pred, score = my_regression(X_train, X_test, y_train, y_test,
-					learning_rate=learning_rate, lmbd=lmbd,
+					learning_rate=learning_rate, lmbd=lmbd, n_epochs=10, batch_size=25,
 					activation="relu", activation_out="linear",is_debug=False, is_mse=True)
 				df.loc[len(df.index)] = [np.log10(learning_rate),np.log10(lmbd),score]
 
 		fig, ax = plt.subplots(figsize = (10, 10))
 		sns.heatmap(df.pivot("learning rate", "lambda", "Score"), annot=True, ax=ax, cmap="viridis")
-		ax.set_title("MSE scores")
+		ax.set_title("MSE scores (NN)")
 		ax.set_ylabel("Learning rate: log$_{10}(\eta)$")
 		ax.set_xlabel("Regularization parameter: log$_{10}(\lambda$)")
-		plt.savefig("hyperparams_regr.pdf")
+		plt.savefig("plots/hyperparams_regr.pdf")
 		plt.show()
 
 	else:
@@ -71,10 +71,10 @@ def find_params(min_learning_rate, max_learning_rate, min_lmbd, max_lmbd, is_reg
 
 		fig, ax = plt.subplots(figsize = (10, 10))
 		sns.heatmap(df.pivot("learning rate", "lambda", "Score"), annot=True, ax=ax, cmap="viridis")
-		ax.set_title("Accuracy scores")
+		ax.set_title("Accuracy scores (NN)")
 		ax.set_ylabel("Learning rate: log$_{10}(\eta)$")
 		ax.set_xlabel("Regularization parameter: log$_{10}(\lambda$)")
-		plt.savefig("hyperparams_clf.pdf")
+		plt.savefig("plots/hyperparams_clf.pdf")
 		plt.show()
 
 
@@ -99,7 +99,11 @@ def cancer():
 	return X_train, X_test, y_train, y_test
 
 
-def my_regression(X_train, X_test, y_train, y_test, activation, activation_out, learning_rate, lmbd, n_epochs=10, batch_size=100, is_debug=False, is_mse=False):
+def my_regression(X_train, X_test, y_train, y_test, 
+	activation, activation_out, 
+	learning_rate, lmbd, 
+	n_epochs=10, batch_size=100, 
+	is_debug=False, is_mse=False):
 	nn = NNRegressor(X_train,y_train, 
 		1, np.array([100]), 
 		activation=activation,activation_out=activation_out, 
@@ -128,10 +132,16 @@ def sk_regression(X_train, X_test, y_train, y_test, activation):
 	return sk_pred, r2
 
 
-def run_regression(activation_out, coeffs=[3,2,1], noise_scale = 0.2,learning_rate=0.001, lmbd=0.001, n_epochs=10, batch_size=100, is_debug=False):
-	x,yn,y = simple_poly(5000, coeffs=coeffs, noise_scale = noise_scale, include_exact=True)
+def run_regression(activation_out, 
+	coeffs=[3,2,1], noise_scale = 0.2,
+	learning_rate=0.001, lmbd=0.001, 
+	n_epochs=10, batch_size=100, 
+	is_debug=False):
+
+	x,yn,y = simple_poly(100, coeffs=coeffs, noise_scale = noise_scale, include_exact=True)
 	X_train, X_test, y_train, y_test = train_test_split(x,yn, train_size=0.8, test_size=0.2)
 
+	activations = ["sigmoid", "relu", "tanh", "leaky_relu"]
 
 	for activation in activations:
 		print(activation)
@@ -155,13 +165,14 @@ def run_regression(activation_out, coeffs=[3,2,1], noise_scale = 0.2,learning_ra
 
 
 def my_classification(X_train, X_test, y_train, y_test, 
+	n_hidden_layers=1, n_nodes_in_layer=[100],
 	n_catagories=1,
 	learning_rate=0.001, lmbd=0.001,
-	n_epochs=1, batch_size=455,
+	n_epochs=10, batch_size=100,
 	activation="sigmoid", activation_out="sigmoid", is_debug=False, is_show_cm=True):
 		
 	clf = NNClassifier(X_train, y_train,
-		1, np.array([100]), 
+		n_hidden_layers, n_nodes_in_layer,
 		n_catagories=n_catagories,
 		activation=activation,activation_out=activation_out, 
 		n_epochs=n_epochs, batch_size=batch_size,
@@ -206,7 +217,7 @@ def run_classification():
 
 	X_train, X_test, y_train, y_test = cancer()
 
-	my_classification(X_train, X_test, y_train, y_test, n_epochs=10, batch_size=100, is_debug=False)
+	my_classification(X_train, X_test, y_train, y_test, n_hidden_layers=2, n_nodes_in_layer=[100,100], n_epochs=10, batch_size=50, is_debug=False)
 
 	sk_classification(X_train, X_test, y_train, y_test)
 
@@ -217,9 +228,11 @@ def run_classification():
 warnings.filterwarnings("ignore" )
 
 # regression
-activations = ["sigmoid", "relu", "tanh", "leaky_relu"]
-run_regression("linear", coeffs=[3,2,1], noise_scale = 0.5, n_epochs=20, batch_size=50, learning_rate=0.001, lmbd=0.0, is_debug=True)
-# find_best_hyperparams(-10,6, -6,2)
+
+
+# run_regression("linear", coeffs=[3,0,1], noise_scale = 0.5, n_epochs=10, batch_size=10, learning_rate=0.001, lmbd=0.01, is_debug=False)
+
+find_best_hyperparams(-6,6, -6,2)
 
 
 # classification
