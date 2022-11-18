@@ -14,19 +14,19 @@ X = make_design_1D(x,n_features)
 
 
 # Comparison plots of several algorithms over learning rates and lambda values
-comparison_plots(X,y,learning_rate_range = [0.01,1],lmbda_range = [-4,0],algos = ['SGD','ADA','RMS','ADAM'],filename = "comparison1.pdf")
-comparison_plots(X,y,learning_rate_range = [0.01,1],lmbda_range = [-4,0],algos = ['ADA','RMS','ADAM'],filename = "comparison2.pdf")
-comparison_plots(X,y,learning_rate_range = [0.01,1],lmbda_range = [-4,-2],algos = ['ADA','RMS','ADAM'],filename = "comparison3.pdf")
-comparison_plots(X,y,learning_rate_range = [0.01,0.15],lmbda_range = [-4,0],algos = ['SGD'],filename = "comparison4.pdf")
+comparison_plots(X,y,learning_rate_range = [0.01,1],lmbda_range = [-4,0],algos = ['SGD','ADA','RMS','ADAM'],n_epochs = 20,filename = "comparison1.pdf")
+comparison_plots(X,y,learning_rate_range = [0.01,1],lmbda_range = [-4,0],algos = ['ADA','RMS','ADAM'],n_epochs = 20,filename = "comparison2.pdf")
+comparison_plots(X,y,learning_rate_range = [0.01,1],lmbda_range = [-4,-2],algos = ['ADA','RMS','ADAM'],n_epochs = 20,filename = "comparison3.pdf")
+comparison_plots(X,y,learning_rate_range = [0.01,0.15],lmbda_range = [-4,0],algos = ['SGD'],n_epochs = 20,filename = "comparison4.pdf")
 
 
 # Plot over selected ranges of learning rates for all four algorithms with 1 and 2 minibatches
-rates_plot(X, y, learning_rates = np.linspace(0.01, 0.17, 200), algo = 'SGD',n_batches=1)
-rates_plot(X, y, learning_rates = np.linspace(0.01, 0.3, 200), algo = 'RMS',n_batches=1)
-rates_plot(X, y, learning_rates = np.linspace(0.4, 5, 200), algo = 'ADA',n_batches=1)
-rates_plot(X, y, learning_rates = np.linspace(0.01, 5, 200), algo = 'ADAM',n_batches=1)
+rates_plot(X, y, learning_rates = np.linspace(0.01, 0.17, 100), algo = 'SGD',n_batches=1)
+rates_plot(X, y, learning_rates = np.linspace(0.01, 0.3, 100), algo = 'RMS',n_batches=1)
+rates_plot(X, y, learning_rates = np.linspace(0.4, 5, 100), algo = 'ADA',n_batches=1)
+rates_plot(X, y, learning_rates = np.linspace(0.01, 5, 100), algo = 'ADAM',n_batches=1)
 
-rates_plot(X, y, learning_rates = np.linspace(0.01, 0.17, 200), algo = 'SGD',n_batches=2)
-rates_plot(X, y, learning_rates = np.linspace(0.01, 0.3, 200), algo = 'RMS',n_batches=2)
-rates_plot(X, y, learning_rates = np.linspace(0.4, 5, 200), algo = 'ADA',n_batches=2)
-rates_plot(X, y, learning_rates = np.linspace(0.01, 5, 200), algo = 'ADAM',n_batches=2)
+rates_plot(X, y, learning_rates = np.linspace(0.01, 0.17, 100), algo = 'SGD',n_batches=2)
+rates_plot(X, y, learning_rates = np.linspace(0.01, 0.3, 100), algo = 'RMS',n_batches=2)
+rates_plot(X, y, learning_rates = np.linspace(0.4, 5, 100), algo = 'ADA',n_batches=2)
+rates_plot(X, y, learning_rates = np.linspace(0.01, 5, 100), algo = 'ADAM',n_batches=2)

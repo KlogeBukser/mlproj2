@@ -78,11 +78,10 @@ def rates_plot(X, y, learning_rates = np.linspace(-7,-5), algo = 'SDG',n_batches
 
 
 
-def comparison_plots(X,y,learning_rate_range = np.linspace(0.01,0.15,100), lmbda_range = [-8,-1],algos = ['SGD','ADA','RMS','ADAM'],n_batches = 1, filename = "comparisons.pdf",logistic = False):
+def comparison_plots(X,y,learning_rate_range = np.linspace(0.01,0.15,100), lmbda_range = [-8,-1],algos = ['SGD','ADA','RMS','ADAM'],n_batches = 1,n_epochs = 20, filename = "comparisons.pdf",logistic = False):
     rng = default_rng(1)
 
     n_predictions = 200
-    n_epochs = 100
     momentum = 0
 
     X_train,X_test,y_train,y_test = train_test_split(X, y, train_size=0.8, test_size=0.2)
@@ -102,7 +101,7 @@ def comparison_plots(X,y,learning_rate_range = np.linspace(0.01,0.15,100), lmbda
 
     else:
         score_func = logMSE
-        score_name = "MSE"
+        score_name = "MSE (log)"
         rate_func = default_func
 
     data = {'learning_rates' : {}, '$\lambda$ (log$_{10}$)' : {}, score_name : {}, 'Algorithm' : {}}
@@ -123,7 +122,7 @@ def comparison_plots(X,y,learning_rate_range = np.linspace(0.01,0.15,100), lmbda
 
     g = sns.pairplot(data=df, x_vars=['learning_rates', '$\lambda$ (log$_{10}$)'], y_vars = [score_name], hue='Algorithm')
     g.fig.subplots_adjust(top=0.8)
-    g.fig.suptitle(score_name + ' after ' + str(n_epochs) + ' iterations \n (momentum: %.2f | minibatches: %d )' % (momentum,n_batches))
+    g.fig.suptitle(score_name + ' after ' + str(n_epochs) + ' epochs \n (predictions: %d | momentum: %.2f | minibatches: %d )' % (n_predictions,momentum,n_batches))
     save_figure(filename)
     plt.close()
 
