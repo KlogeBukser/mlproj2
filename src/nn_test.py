@@ -10,10 +10,12 @@ import warnings
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import ConfusionMatrixDisplay
 
+from save_fig import save_figure
 from nn import *
 from generate import *
 from NNDebugger import *
 from activation_funcs import *
+
 
 
 
@@ -118,7 +120,6 @@ def my_regression(X_train, X_test, y_train, y_test,
 	r2=nn.R2(X_test,y_test)
 	print("myR2", r2)
 	return pred, r2
-	return pred, R2(X_test,y_test)
 
 def sk_regression(X_train, X_test, y_train, y_test, activation):
 
@@ -160,7 +161,7 @@ def run_regression(activation_out,
 
 		plt.title("Regression " + str(activation) + " R2 = " + str(myr2))
 		plt.legend()
-		plt.savefig("plots/regression-" + activation + ".pdf")
+		save_figure("regression-" + activation + ".pdf")
 		plt.close()
 
 
@@ -183,14 +184,13 @@ def my_classification(X_train, X_test, y_train, y_test,
 	clf.train()
 	result = clf.predict(X_test)
 	acc = clf.score(X_test, y_test)
-	print("My accuracy:", acc)
 
 	if is_show_cm:
 		cm = confusion_matrix(y_test, result)
 		disp = ConfusionMatrixDisplay(confusion_matrix=cm)
 		disp.plot()
 		plt.title("My Classification")
-		plt.savefig("plots/my-clf.pdf")
+		save_figure("my-clf.pdf")
 
 	return acc
 
@@ -210,7 +210,7 @@ def sk_classification(X_train, X_test, y_train, y_test):
 	disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=clf.classes_)
 	disp.plot()
 	plt.title("Sklearn's Classification")
-	plt.savefig("plots/sk-clf.pdf")
+	save_figure("sk-clf.pdf")
 
 
 def run_classification():
@@ -222,21 +222,6 @@ def run_classification():
 	sk_classification(X_train, X_test, y_train, y_test)
 
 
-# ====================================Function Calls Below==============================================
-
-# ignore stupid matplotlib warnings
-warnings.filterwarnings("ignore" )
-
-# regression
-
-
-# run_regression("linear", coeffs=[3,0,1], noise_scale = 0.5, n_epochs=10, batch_size=10, learning_rate=0.001, lmbd=0.01, is_debug=False)
-
-find_best_hyperparams(-6,6, -6,2)
-
-
-# classification
-# run_classification()
 
 
 
