@@ -57,7 +57,7 @@ def find_params(min_learning_rate, max_learning_rate, min_lmbd, max_lmbd, is_reg
 		ax.set_title("MSE scores (NN)")
 		ax.set_ylabel("Learning rate: log$_{10}(\eta)$")
 		ax.set_xlabel("Regularization parameter: log$_{10}(\lambda$)")
-		plt.savefig("plots/hyperparams_regr.pdf")
+		save_figure("hyperparams_regr.pdf")	# use this
 		plt.show()
 
 	else:
@@ -76,7 +76,7 @@ def find_params(min_learning_rate, max_learning_rate, min_lmbd, max_lmbd, is_reg
 		ax.set_title("Accuracy scores (NN)")
 		ax.set_ylabel("Learning rate: log$_{10}(\eta)$")
 		ax.set_xlabel("Regularization parameter: log$_{10}(\lambda$)")
-		plt.savefig("plots/hyperparams_clf.pdf")
+		save_figure("hyperparams_clf.pdf")
 		plt.show()
 
 
