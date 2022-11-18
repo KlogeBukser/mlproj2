@@ -140,10 +140,10 @@ def run_regression(activation_out="linear",
 	n_epochs=20, batch_size=80, 
 	is_debug=False):
 
-	x,yn,y = simple_poly(1000, coeffs=coeffs, noise_scale = noise_scale, include_exact=True)
+	x,yn,y = simple_poly(2000, coeffs=coeffs, noise_scale = noise_scale, include_exact=True)
 	X_train, X_test, y_train, y_test = train_test_split(x,yn, train_size=0.8, test_size=0.2)
 
-	activations = ["sigmoid"]#, "relu", "tanh", "leaky_relu"]
+	activations = ["sigmoid", "relu", "tanh", "leaky_relu"]
 
 	# only use for cmp
 	if activation is not None:
@@ -153,6 +153,17 @@ def run_regression(activation_out="linear",
 				sk_pred, skr2 = sk_regression(X_train, X_test, y_train, y_test, "logistic")
 			else:
 				sk_pred, skr2 = sk_regression(X_train, X_test, y_train, y_test, activation)
+
+		plt.plot(x,y, label="actual function", color='r')
+		plt.scatter(X_test, y_test, label="y_test", s=5)
+		plt.scatter(X_test, pred, label="my predition", s=8)
+		if activation != "leaky_relu":
+			plt.scatter(X_test, sk_pred, label="sklearn prediction", s=8)
+
+		plt.title("Regression " + str(activation) + " R2 = " + str(myr2))
+		plt.legend()
+		save_figure("regression-" + activation + ".pdf")
+		plt.close()
 
 		return myr2, skr2
 
@@ -232,11 +243,11 @@ def sk_classification(X_train, X_test, y_train, y_test):
 	return sk_acc
 
 
-def run_classification(X_train, X_test, y_train, y_test, 
+def run_classification(
 	n_hidden_layers=1, n_nodes_in_layer=[100],
 	n_catagories=1,
 	learning_rate=0.001, lmbd=0.001,
-	n_epochs=10, batch_size=100,
+	n_epochs=20, batch_size=20,
 	activation="sigmoid", activation_out="sigmoid", is_debug=False, is_show_cm=True):
 
 	X_train, X_test, y_train, y_test = cancer()
