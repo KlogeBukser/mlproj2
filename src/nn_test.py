@@ -128,7 +128,7 @@ def sk_regression(X_train, X_test, y_train, y_test, activation):
 	return sk_pred, r2
 
 
-def run_regression(activation_out, coeffs=[3,2,1], noise_scale = 0.2,learning_rate=0.001, lmbd=0.001, n_epochs=10, batch_size=100, is_debug=False):
+def run_regression(activation_out, coeffs=[3,2,1], noise_scale = 0.5,learning_rate=0.001, lmbd=0.001, n_epochs=10, batch_size=100, is_debug=False):
 	x,yn,y = simple_poly(5000, coeffs=coeffs, noise_scale = noise_scale, include_exact=True)
 	X_train, X_test, y_train, y_test = train_test_split(x,yn, train_size=0.8, test_size=0.2)
 
