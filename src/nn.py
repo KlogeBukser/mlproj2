@@ -58,14 +58,15 @@ class NeuralNetwork:
 		self.activation_out = ActivationFunction(activation_out)
 
 		self.is_classifier = is_classifier
+		self.is_debug = is_debug
 
 		self.create_biases_and_weights()
 
 
 		# debug
 		self.debugger = NNDebugger(self, is_debug, activation, activation_out)
-
-		self.debugger.print_static()
+		if self.is_debug:
+			self.debugger.print_static()
 
 	# structural methods below
 
@@ -195,7 +196,8 @@ class NeuralNetwork:
 				if self.score(self.X_data_full, self.y_data_full) > 100:
 					self.create_biases_and_weights()
 
-				self.debugger.print_score(i*self.n_iter+j,self.n_epochs*self.n_iter)
+				if self.is_debug:
+					self.debugger.print_score(i*self.n_iter+j,self.n_epochs*self.n_iter)
 
 		training_score = self.score(self.X_data_full, self.y_data_full)
 		if not self.is_classifier:

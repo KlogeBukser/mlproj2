@@ -10,10 +10,12 @@ import warnings
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import ConfusionMatrixDisplay
 
+from make_figure import save_figure
 from nn import *
 from generate import *
 from NNDebugger import *
 from activation_funcs import *
+
 
 
 
@@ -55,7 +57,7 @@ def find_params(min_learning_rate, max_learning_rate, min_lmbd, max_lmbd, is_reg
 		ax.set_title("MSE scores")
 		ax.set_ylabel("Learning rate: log$_{10}(\eta)$")
 		ax.set_xlabel("Regularization parameter: log$_{10}(\lambda$)")
-		plt.savefig("hyperparams_regr.pdf")
+		save_figure("hyperparams_regr.pdf")
 		plt.show()
 
 	else:
@@ -74,7 +76,7 @@ def find_params(min_learning_rate, max_learning_rate, min_lmbd, max_lmbd, is_reg
 		ax.set_title("Accuracy scores")
 		ax.set_ylabel("Learning rate: log$_{10}(\eta)$")
 		ax.set_xlabel("Regularization parameter: log$_{10}(\lambda$)")
-		plt.savefig("hyperparams_clf.pdf")
+		save_figure("hyperparams_clf.pdf")
 		plt.show()
 
 
@@ -114,7 +116,6 @@ def my_regression(X_train, X_test, y_train, y_test, activation, activation_out, 
 	r2=nn.R2(X_test,y_test)
 	print("myR2", r2)
 	return pred, r2
-	return pred, R2(X_test,y_test)
 
 def sk_regression(X_train, X_test, y_train, y_test, activation):
 
@@ -132,7 +133,7 @@ def run_regression(activation_out, coeffs=[3,2,1], noise_scale = 0.5,learning_ra
 	x,yn,y = simple_poly(5000, coeffs=coeffs, noise_scale = noise_scale, include_exact=True)
 	X_train, X_test, y_train, y_test = train_test_split(x,yn, train_size=0.8, test_size=0.2)
 
-
+	activations = ["sigmoid", "relu", "tanh", "leaky_relu"]
 	for activation in activations:
 		print(activation)
 		pred, myr2 = my_regression(X_train, X_test, y_train, y_test, activation, activation_out, n_epochs=n_epochs, batch_size=batch_size, learning_rate=learning_rate, lmbd=lmbd, is_debug=is_debug)
@@ -150,7 +151,7 @@ def run_regression(activation_out, coeffs=[3,2,1], noise_scale = 0.5,learning_ra
 
 		plt.title("Regression " + str(activation) + " R2 = " + str(myr2))
 		plt.legend()
-		plt.savefig("plots/regression-" + activation + ".pdf")
+		save_figure("regression-" + activation + ".pdf")
 		plt.close()
 
 
@@ -172,14 +173,13 @@ def my_classification(X_train, X_test, y_train, y_test,
 	clf.train()
 	result = clf.predict(X_test)
 	acc = clf.score(X_test, y_test)
-	print("My accuracy:", acc)
 
 	if is_show_cm:
 		cm = confusion_matrix(y_test, result)
 		disp = ConfusionMatrixDisplay(confusion_matrix=cm)
 		disp.plot()
 		plt.title("My Classification")
-		plt.savefig("plots/my-clf.pdf")
+		save_figure("my-clf.pdf")
 
 	return acc
 
@@ -199,7 +199,7 @@ def sk_classification(X_train, X_test, y_train, y_test):
 	disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=clf.classes_)
 	disp.plot()
 	plt.title("Sklearn's Classification")
-	plt.savefig("plots/sk-clf.pdf")
+	save_figure("sk-clf.pdf")
 
 
 def run_classification():
@@ -211,19 +211,6 @@ def run_classification():
 	sk_classification(X_train, X_test, y_train, y_test)
 
 
-# ====================================Function Calls Below==============================================
-
-# ignore stupid matplotlib warnings
-warnings.filterwarnings("ignore" )
-
-# regression
-activations = ["sigmoid", "relu", "tanh", "leaky_relu"]
-run_regression("linear", coeffs=[3,2,1], noise_scale = 0.5, n_epochs=20, batch_size=50, learning_rate=0.001, lmbd=0.0, is_debug=True)
-# find_best_hyperparams(-10,6, -6,2)
-
-
-# classification
-# run_classification()
 
 
 
