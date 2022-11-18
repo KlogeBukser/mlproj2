@@ -10,7 +10,7 @@ import warnings
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import ConfusionMatrixDisplay
 
-from make_figure import save_figure
+from save_fig import save_figure
 from nn import *
 from generate import *
 from NNDebugger import *

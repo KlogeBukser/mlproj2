@@ -5,22 +5,14 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from gradient_descent_iterators import *
 from misc import *
+from nn_test import my_classification as classification
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 
 from numpy.random import default_rng
-
-
-
-def save_figure(filename):
-    # Makes folder for holding plots if it doesn't already exist
-    file_dir = os.path.dirname(os.path.abspath(__file__)) + "/plots"
-    if not os.path.exists(file_dir):
-        os.mkdir(file_dir)
-    full_path = os.path.join(file_dir, filename)
-    plt.savefig(full_path)
+from save_fig import save_figure
 
 
 def get_sgd_iterator(X, y, theta_init, learning_rate = 0.001, lmbda = 0, n_batches = 1, momentum = 0,algo = 'SGD',logistic = False):
@@ -276,19 +268,27 @@ def log_reg_sklearn(X, y, learning_rate, lmbda, n_epochs=100, predictions = 10):
         sk_score = accuracy_score(sk_pred,y_test_sk)
         df.loc[len(df.index)] = ["sklearn",sk_score]
 
-        # Our models Models
+        # Our models
         scaler = StandardScaler()
         X_train = scaler.fit_transform(X_train)
         X_test = scaler.transform(X_test)
 
         theta = np.zeros((X_train.shape[1],1))
 
+        # Gradient descent
         for algo in ["SGD","ADA","RMS","ADAM"]:
             our_model = get_sgd_iterator(X_train,y_train,theta,learning_rate=learning_rate,lmbda=lmbda,algo = algo, logistic = True)
             our_model.advance(n_epochs)
             pred = our_model.predict(X_test)
             score = accuracy_score(pred,y_test)
             df.loc[len(df.index)] = [algo, score]
+
+        # Neural network
+        score = classification(X_train, X_test, y_train, y_test,
+					learning_rate=learning_rate, lmbd=lmbda,n_epochs=n_epochs,
+					activation="sigmoid", activation_out="sigmoid",is_debug=False, is_show_cm=False)
+        df.loc[len(df.index)] = ["Neural Network", score]
+
 
     fig, ax = plt.subplots(figsize = (10, 10))
     sns.boxplot(data=df, x="Model", y="Accuracy score",ax = ax)
