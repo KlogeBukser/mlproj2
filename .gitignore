@@ -141,3 +141,18 @@ dmypy.json
 
 # specific
 example.py
+*.png
+*.pdf
+mlproj2 latex/main.aux
+*.cls
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.out
+*.gz
+*.bib
+*.aux
+*.tex
+*.bst
+src/test.py
